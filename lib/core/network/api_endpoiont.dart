@@ -1,0 +1,21 @@
+abstract class EndPoints {
+  static const String baseUrl = 'https://grow-server-beta.vercel.app/api/v1/';
+  static const String refreshToken = 'refreshToken';
+  static const String customerRegisterInit = 'auth/customer/register/init';
+  static const String customerVerifyOtp = 'auth/customer/verify-otp';
+  static const String customerRegisterComplete =
+      'auth/customer/register/complete';
+  static const String customerLoginInit = 'auth/customer/login/init';
+  static const String customerLoginComplete = 'auth/customer/login/complete';
+  static const String customerResendOtp = 'auth/customer/resend-otp';
+  static const String customerTransactions = 'customer/transactions';
+  static const String customerDashboard = 'customer/dashboard';
+  static const String customerNotifications = 'customer/notifications';
+  static const String customerSpaces = 'spaces';
+  static const String customerSpacesMove = 'spaces/move';
+  static const String customerRedeem = 'customer/redeem';
+  static const String customerChangePasscode = 'auth/customer/change-passcode';
+  static const String customerSupport = 'profile/support';
+  static const String customerSupportCall = 'customer/support-call';
+  static const String customerProfile = 'profile/customer';
+}
