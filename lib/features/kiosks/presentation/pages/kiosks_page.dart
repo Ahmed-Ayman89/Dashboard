@@ -110,57 +110,59 @@ class _KiosksPageState extends State<KiosksPage> {
 
   Widget _buildKiosksTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Kiosk Name')),
-              DataColumn(label: Text('Owner')),
-              DataColumn(label: Text('Location')),
-              DataColumn(label: Text('Daily TX')),
-              DataColumn(label: Text('Dues')),
-              DataColumn(label: Text('Status')),
-            ],
-            rows: _dummyKiosks.map((kiosk) {
-              return DataRow(cells: [
-                DataCell(Text(kiosk.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(Text(kiosk.ownerName)),
-                DataCell(Text(kiosk.location)),
-                DataCell(Text(kiosk.dailyTransactions.toString())),
-                DataCell(
-                  Text(
-                    '${kiosk.dues.toStringAsFixed(0)} EGP',
-                    style: TextStyle(
-                      color: kiosk.dues > 1000
-                          ? AppColors.error
-                          : AppColors.textPrimary,
-                      fontWeight: kiosk.dues > 1000
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-                DataCell(_buildStatusBadge(kiosk.isSuspended)),
-              ]);
-            }).toList(),
-          ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
-    );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('Kiosk Name')),
+                  DataColumn(label: Text('Owner')),
+                  DataColumn(label: Text('Location')),
+                  DataColumn(label: Text('Daily TX')),
+                  DataColumn(label: Text('Dues')),
+                  DataColumn(label: Text('Status')),
+                ],
+                rows: _dummyKiosks.map((kiosk) {
+                  return DataRow(cells: [
+                    DataCell(Text(kiosk.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                    DataCell(Text(kiosk.ownerName)),
+                    DataCell(Text(kiosk.location)),
+                    DataCell(Text(kiosk.dailyTransactions.toString())),
+                    DataCell(
+                      Text(
+                        '${kiosk.dues.toStringAsFixed(0)} EGP',
+                        style: TextStyle(
+                          color: kiosk.dues > 1000
+                              ? AppColors.error
+                              : AppColors.textPrimary,
+                          fontWeight: kiosk.dues > 1000
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    DataCell(_buildStatusBadge(kiosk.isSuspended)),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildStatusBadge(bool isSuspended) {

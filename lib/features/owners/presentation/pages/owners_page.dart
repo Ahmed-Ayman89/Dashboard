@@ -59,12 +59,31 @@ class _OwnersPageState extends State<OwnersPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Owner Management', style: AppTextStyle.heading1),
-              _buildAddOwnerButton(),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 800) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Owner Management', style: AppTextStyle.heading1),
+                    const SizedBox(height: 16),
+                    _buildAddOwnerButton(),
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text('Owner Management',
+                        style: AppTextStyle.heading1,
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  const SizedBox(width: 16),
+                  _buildAddOwnerButton(),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 32),
           _buildSearchAndFilters(),
@@ -131,76 +150,78 @@ class _OwnersPageState extends State<OwnersPage>
 
   Widget _buildOwnersTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Owner Info')),
-              DataColumn(label: Text('Kiosks')),
-              DataColumn(label: Text('Balance')),
-              DataColumn(label: Text('Joined Date')),
-              DataColumn(label: Text('Status')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: _dummyOwners.map((owner) {
-              return DataRow(cells: [
-                DataCell(
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor:
-                            AppColors.brandPrimary.withValues(alpha: 0.1),
-                        child: Text(owner.name[0],
-                            style: TextStyle(
-                                color: AppColors.brandPrimary,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('Owner Info')),
+                  DataColumn(label: Text('Kiosks')),
+                  DataColumn(label: Text('Balance')),
+                  DataColumn(label: Text('Joined Date')),
+                  DataColumn(label: Text('Status')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: _dummyOwners.map((owner) {
+                  return DataRow(cells: [
+                    DataCell(
+                      Row(
                         children: [
-                          Text(owner.name,
-                              style: AppTextStyle.bodySmall.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary)),
-                          Text(owner.phone, style: AppTextStyle.caption),
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor:
+                                AppColors.brandPrimary.withValues(alpha: 0.1),
+                            child: Text(owner.name[0],
+                                style: TextStyle(
+                                    color: AppColors.brandPrimary,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(owner.name,
+                                  style: AppTextStyle.bodySmall.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary)),
+                              Text(owner.phone, style: AppTextStyle.caption),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                DataCell(Text(owner.totalKiosks.toString())),
-                DataCell(Text('${owner.balance.toStringAsFixed(0)} EGP')),
-                DataCell(
-                    Text(DateFormat('MMM dd, yyyy').format(owner.createdAt))),
-                DataCell(_buildStatusBadge(owner.status)),
-                DataCell(
-                  IconButton(
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    onPressed: () {},
-                  ),
-                ),
-              ]);
-            }).toList(),
+                    ),
+                    DataCell(Text(owner.totalKiosks.toString())),
+                    DataCell(Text('${owner.balance.toStringAsFixed(0)} EGP')),
+                    DataCell(Text(
+                        DateFormat('MMM dd, yyyy').format(owner.createdAt))),
+                    DataCell(_buildStatusBadge(owner.status)),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.more_horiz_rounded),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildStatusBadge(OwnerStatus status) {

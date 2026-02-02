@@ -79,51 +79,53 @@ class _WorkersPageState extends State<WorkersPage> {
 
   Widget _buildWorkersTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Phone Number')),
-              DataColumn(label: Text('Kiosk')),
-              DataColumn(label: Text('Owner')),
-              DataColumn(label: Text('Commission')),
-              DataColumn(label: Text('Status')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: _dummyWorkers.map((worker) {
-              return DataRow(cells: [
-                DataCell(Text(worker.phone,
-                    style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(Text(worker.kioskName)),
-                DataCell(Text(worker.ownerName)),
-                DataCell(
-                    Text('${worker.commissionEarned.toStringAsFixed(0)} EGP')),
-                DataCell(_buildStatusBadge(worker.status)),
-                DataCell(
-                  IconButton(
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    onPressed: () {},
-                  ),
-                ),
-              ]);
-            }).toList(),
-          ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
-    );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('Phone Number')),
+                  DataColumn(label: Text('Kiosk')),
+                  DataColumn(label: Text('Owner')),
+                  DataColumn(label: Text('Commission')),
+                  DataColumn(label: Text('Status')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: _dummyWorkers.map((worker) {
+                  return DataRow(cells: [
+                    DataCell(Text(worker.phone,
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                    DataCell(Text(worker.kioskName)),
+                    DataCell(Text(worker.ownerName)),
+                    DataCell(Text(
+                        '${worker.commissionEarned.toStringAsFixed(0)} EGP')),
+                    DataCell(_buildStatusBadge(worker.status)),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.more_horiz_rounded),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildStatusBadge(WorkerStatus status) {

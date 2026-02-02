@@ -10,31 +10,70 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isMobile = MediaQuery.of(context).size.width < 800;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32.0),
+      padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          _buildKpiGrid(),
-          const SizedBox(height: 32),
-          _buildChartsSection(),
-          const SizedBox(height: 32),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 2, child: _buildSystemHealth()),
-              const SizedBox(width: 32),
-              Expanded(flex: 1, child: _buildQuickActions()),
-            ],
-          ),
+          _buildHeader(isMobile),
+          SizedBox(height: isMobile ? 24 : 32),
+          _buildKpiGrid(context, isMobile),
+          SizedBox(height: isMobile ? 24 : 32),
+          _buildChartsSection(isMobile),
+          SizedBox(height: isMobile ? 24 : 32),
+          if (isMobile) ...[
+            _buildSystemHealth(),
+            const SizedBox(height: 24),
+            _buildQuickActions(),
+          ] else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 2, child: _buildSystemHealth()),
+                const SizedBox(width: 32),
+                Expanded(flex: 1, child: _buildQuickActions()),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildChartsSection() {
+  Widget _buildChartsSection(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        children: [
+          AnalyticsChart(
+            title: 'Accumulative Transactions',
+            spots: const [
+              FlSpot(0, 5),
+              FlSpot(1, 12),
+              FlSpot(2, 18),
+              FlSpot(3, 22),
+              FlSpot(4, 30),
+              FlSpot(5, 35),
+            ],
+            xAxisLabels: const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          ),
+          const SizedBox(height: 24),
+          AnalyticsChart(
+            title: 'Daily Points Sent',
+            spots: const [
+              FlSpot(0, 10),
+              FlSpot(1, 8),
+              FlSpot(2, 12),
+              FlSpot(3, 14),
+              FlSpot(4, 9),
+              FlSpot(5, 15),
+            ],
+            xAxisLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            chartColor: AppColors.secondary,
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         Expanded(
@@ -71,7 +110,32 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Business Overview', style: AppTextStyle.heading1),
+                    Text('Monitor platform performance',
+                        style: AppTextStyle.bodyMedium),
+                  ],
+                ),
+              ),
+              // Mobile specific compact date selector if needed, or keep stacked
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildDateRangeSelector(),
+        ],
+      );
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -111,7 +175,7 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildKpiGrid() {
+  Widget _buildKpiGrid(BuildContext context, bool isMobile) {
     final kpis = [
       {
         'title': 'Total Kiosks',
@@ -154,11 +218,11 @@ class HomeView extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isMobile ? 1 : 3,
         crossAxisSpacing: 24,
         mainAxisSpacing: 24,
-        childAspectRatio: 2.5,
+        childAspectRatio: isMobile ? 3.5 : 2.5,
       ),
       itemCount: kpis.length,
       itemBuilder: (context, index) {

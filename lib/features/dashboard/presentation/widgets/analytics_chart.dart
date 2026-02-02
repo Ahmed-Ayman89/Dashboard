@@ -38,7 +38,14 @@ class AnalyticsChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: AppTextStyle.heading3),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyle.heading3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               const Icon(Icons.more_vert_rounded, color: AppColors.neutral500),
             ],
           ),

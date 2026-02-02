@@ -108,7 +108,14 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTextStyle.bodyRegular),
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyle.bodyRegular,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 16),
           Row(
             children: [
               Text(value,

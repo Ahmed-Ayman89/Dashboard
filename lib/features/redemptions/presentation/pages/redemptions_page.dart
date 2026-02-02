@@ -63,99 +63,125 @@ class _RedemptionsPageState extends State<RedemptionsPage> {
   }
 
   Widget _buildSummaryCards() {
-    return Row(
-      children: [
-        _buildMiniCard('Pending', '15', AppColors.warning),
-        const SizedBox(width: 24),
-        _buildMiniCard('Total Today', '1,250 EGP', AppColors.brandPrimary),
-        const SizedBox(width: 24),
-        _buildMiniCard('Processed', '42', AppColors.success),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 800) {
+          return Column(
+            children: [
+              _buildMiniCard('Pending', '15', AppColors.warning),
+              const SizedBox(height: 16),
+              _buildMiniCard(
+                  'Total Today', '1,250 EGP', AppColors.brandPrimary),
+              const SizedBox(height: 16),
+              _buildMiniCard('Processed', '42', AppColors.success),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: _buildMiniCard('Pending', '15', AppColors.warning)),
+            const SizedBox(width: 24),
+            Expanded(
+                child: _buildMiniCard(
+                    'Total Today', '1,250 EGP', AppColors.brandPrimary)),
+            const SizedBox(width: 24),
+            Expanded(
+                child: _buildMiniCard('Processed', '42', AppColors.success)),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildMiniCard(String label, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: AppTextStyle.bodySmall),
-            const SizedBox(height: 8),
-            Text(value, style: AppTextStyle.heading3.copyWith(color: color)),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyle.bodySmall),
+                const SizedBox(height: 8),
+                Text(value,
+                    style: AppTextStyle.heading3.copyWith(color: color)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildRedemptionsQueue() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('User')),
-              DataColumn(label: Text('Type')),
-              DataColumn(label: Text('Amount')),
-              DataColumn(label: Text('Method')),
-              DataColumn(label: Text('Date')),
-              DataColumn(label: Text('Status')),
-              DataColumn(label: Text('Action')),
-            ],
-            rows: _dummyRedemptions.map((red) {
-              return DataRow(cells: [
-                DataCell(Text(red.userName,
-                    style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(Text(red.userType.name.toUpperCase())),
-                DataCell(Text('${red.amount.toStringAsFixed(0)} EGP')),
-                DataCell(Text(red.paymentMethod)),
-                DataCell(
-                    Text(DateFormat('MMM dd, HH:mm').format(red.requestedAt))),
-                DataCell(_buildStatusBadge(red.status)),
-                DataCell(
-                  red.status == RedemptionStatus.pending
-                      ? Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.check_circle_rounded,
-                                  color: AppColors.success),
-                              onPressed: () {},
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.cancel_rounded,
-                                  color: AppColors.error),
-                              onPressed: () {},
-                            ),
-                          ],
-                        )
-                      : const Text('-'),
-                ),
-              ]);
-            }).toList(),
-          ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
-    );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('User')),
+                  DataColumn(label: Text('Type')),
+                  DataColumn(label: Text('Amount')),
+                  DataColumn(label: Text('Method')),
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Status')),
+                  DataColumn(label: Text('Action')),
+                ],
+                rows: _dummyRedemptions.map((red) {
+                  return DataRow(cells: [
+                    DataCell(Text(red.userName,
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                    DataCell(Text(red.userType.name.toUpperCase())),
+                    DataCell(Text('${red.amount.toStringAsFixed(0)} EGP')),
+                    DataCell(Text(red.paymentMethod)),
+                    DataCell(Text(
+                        DateFormat('MMM dd, HH:mm').format(red.requestedAt))),
+                    DataCell(_buildStatusBadge(red.status)),
+                    DataCell(
+                      red.status == RedemptionStatus.pending
+                          ? Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.check_circle_rounded,
+                                      color: AppColors.success),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.cancel_rounded,
+                                      color: AppColors.error),
+                                  onPressed: () {},
+                                ),
+                              ],
+                            )
+                          : const Text('-'),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildStatusBadge(RedemptionStatus status) {

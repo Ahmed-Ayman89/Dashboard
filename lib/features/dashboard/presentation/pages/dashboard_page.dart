@@ -15,6 +15,7 @@ import 'package:dashboard_grow/features/dashboard/presentation/pages/admin_team_
 import 'package:dashboard_grow/features/dashboard/presentation/pages/analytics_page.dart';
 import '../widgets/nav_item.dart';
 import 'home_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -81,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
       backgroundColor: AppColors.neutral100,
       appBar: ResponsiveLayout.isMobile(context)
           ? AppBar(
-              title: Text('GROW Admin', style: AppTextStyle.heading3),
+              title: SvgPicture.asset('assets/onboarding/glow.svg', height: 28),
               backgroundColor: AppColors.white,
               elevation: 0,
             )
@@ -133,14 +134,11 @@ class _Sidebar extends StatelessWidget {
         children: [
           if (ResponsiveLayout.isDesktop(context)) ...[
             const SizedBox(height: 48),
-            Text(
-              'GROW',
-              style: AppTextStyle.heading2.copyWith(
-                letterSpacing: 2,
-                color: AppColors.brandPrimary,
-              ),
+            SvgPicture.asset(
+              'assets/onboarding/glow.svg',
+              height: 50,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
               'ADMIN DASHBOARD',
               style: AppTextStyle.caption.copyWith(

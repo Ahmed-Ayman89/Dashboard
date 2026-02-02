@@ -70,27 +70,64 @@ class _TransactionsPageState extends State<TransactionsPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.divider),
       ),
-      child: Row(
-        children: [
-          _buildFilterItem('Date Range', Icons.calendar_today_rounded),
-          const VerticalDivider(width: 32),
-          _buildFilterItem('Kiosk', Icons.store_rounded),
-          const VerticalDivider(width: 32),
-          _buildFilterItem('Status', Icons.filter_list_rounded),
-          const Spacer(),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.download_rounded, size: 18),
-            label: const Text('Export CSV'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.neutral100,
-              foregroundColor: AppColors.neutral800,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 800) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    _buildFilterItem(
+                        'Date Range', Icons.calendar_today_rounded),
+                    _buildFilterItem('Kiosk', Icons.store_rounded),
+                    _buildFilterItem('Status', Icons.filter_list_rounded),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.download_rounded, size: 18),
+                    label: const Text('Export CSV'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.neutral100,
+                      foregroundColor: AppColors.neutral800,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              _buildFilterItem('Date Range', Icons.calendar_today_rounded),
+              const VerticalDivider(width: 32),
+              _buildFilterItem('Kiosk', Icons.store_rounded),
+              const VerticalDivider(width: 32),
+              _buildFilterItem('Status', Icons.filter_list_rounded),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.download_rounded, size: 18),
+                label: const Text('Export CSV'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.neutral100,
+                  foregroundColor: AppColors.neutral800,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -112,46 +149,48 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   Widget _buildTransactionsTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('ID')),
-              DataColumn(label: Text('Sender')),
-              DataColumn(label: Text('Kiosk')),
-              DataColumn(label: Text('Customer')),
-              DataColumn(label: Text('Points')),
-              DataColumn(label: Text('Status')),
-            ],
-            rows: _dummyTransactions.map((tx) {
-              return DataRow(cells: [
-                DataCell(Text(tx.id,
-                    style: AppTextStyle.caption
-                        .copyWith(fontWeight: FontWeight.bold))),
-                DataCell(Text(tx.senderName)),
-                DataCell(Text(tx.kioskName)),
-                DataCell(Text(tx.customerPhone)),
-                DataCell(Text(tx.points.toString())),
-                DataCell(_buildStatusBadge(tx.status)),
-              ]);
-            }).toList(),
-          ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
-    );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('ID')),
+                  DataColumn(label: Text('Sender')),
+                  DataColumn(label: Text('Kiosk')),
+                  DataColumn(label: Text('Customer')),
+                  DataColumn(label: Text('Points')),
+                  DataColumn(label: Text('Status')),
+                ],
+                rows: _dummyTransactions.map((tx) {
+                  return DataRow(cells: [
+                    DataCell(Text(tx.id,
+                        style: AppTextStyle.caption
+                            .copyWith(fontWeight: FontWeight.bold))),
+                    DataCell(Text(tx.senderName)),
+                    DataCell(Text(tx.kioskName)),
+                    DataCell(Text(tx.customerPhone)),
+                    DataCell(Text(tx.points.toString())),
+                    DataCell(_buildStatusBadge(tx.status)),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildStatusBadge(TransactionStatus status) {

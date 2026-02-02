@@ -68,7 +68,8 @@ class AuditLogPage extends StatelessWidget {
                       child: const Icon(Icons.history_rounded,
                           color: AppColors.neutral600),
                     ),
-                    title: Row(
+                    title: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(log.adminName,
                             style: AppTextStyle.bodySmall

@@ -80,45 +80,48 @@ class _CustomersPageState extends State<CustomersPage> {
 
   Widget _buildCustomersTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Phone Number')),
-              DataColumn(label: Text('Balance')),
-              DataColumn(label: Text('Points Received')),
-              DataColumn(label: Text('App Status')),
-              DataColumn(label: Text('Kiosks')),
-              DataColumn(label: Text('Status')),
-            ],
-            rows: _dummyCustomers.map((customer) {
-              return DataRow(cells: [
-                DataCell(Text(customer.phone,
-                    style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(Text('${customer.balance.toStringAsFixed(0)} EGP')),
-                DataCell(Text(customer.pointsReceived.toString())),
-                DataCell(_buildAppStatus(customer.appDownloaded)),
-                DataCell(Text(customer.kiosksInteractedCount.toString())),
-                DataCell(_buildStatusBadge(customer.isSuspended)),
-              ]);
-            }).toList(),
-          ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
-    );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+                columns: const [
+                  DataColumn(label: Text('Phone Number')),
+                  DataColumn(label: Text('Balance')),
+                  DataColumn(label: Text('Points Received')),
+                  DataColumn(label: Text('App Status')),
+                  DataColumn(label: Text('Kiosks')),
+                  DataColumn(label: Text('Status')),
+                ],
+                rows: _dummyCustomers.map((customer) {
+                  return DataRow(cells: [
+                    DataCell(Text(customer.phone,
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                    DataCell(
+                        Text('${customer.balance.toStringAsFixed(0)} EGP')),
+                    DataCell(Text(customer.pointsReceived.toString())),
+                    DataCell(_buildAppStatus(customer.appDownloaded)),
+                    DataCell(Text(customer.kiosksInteractedCount.toString())),
+                    DataCell(_buildStatusBadge(customer.isSuspended)),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildAppStatus(bool downloaded) {
