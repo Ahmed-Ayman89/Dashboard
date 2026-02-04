@@ -18,4 +18,6 @@ abstract class EndPoints {
   static const String customerSupport = 'profile/support';
   static const String customerSupportCall = 'customer/support-call';
   static const String customerProfile = 'profile/customer';
+  static const String login = 'auth/login';
+  static const String inviteAdmin = 'admin/team';
 }

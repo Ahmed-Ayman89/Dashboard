@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
+import '../../../admin_team/presentation/widgets/invite_admin_dialog.dart';
 
 class AdminTeamPage extends StatelessWidget {
   const AdminTeamPage({super.key});
@@ -21,7 +22,12 @@ class AdminTeamPage extends StatelessWidget {
                     Text('Admin Team Management', style: AppTextStyle.heading1),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const InviteAdminDialog(),
+                        );
+                      },
                       icon: const Icon(Icons.mail_outline_rounded,
                           color: AppColors.white),
                       label: Text('Invite Admin', style: AppTextStyle.button),
@@ -46,7 +52,12 @@ class AdminTeamPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const InviteAdminDialog(),
+                      );
+                    },
                     icon: const Icon(Icons.mail_outline_rounded,
                         color: AppColors.white),
                     label: Text('Invite Admin', style: AppTextStyle.button),

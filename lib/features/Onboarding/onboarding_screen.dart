@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/helper/app_text_style.dart';
-import '../dashboard/presentation/pages/dashboard_page.dart';
+import '../auth/presentation/pages/login_page.dart';
 import 'onboarding_page_widget.dart';
 import 'onboarding_model.dart';
 import 'widgets/circal_btn_widgets.dart';
@@ -28,7 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _navigateToOption() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const DashboardPage()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 

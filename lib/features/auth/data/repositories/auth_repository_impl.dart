@@ -1,0 +1,47 @@
+import '../../../../core/network/api_response.dart';
+import '../../../../core/network/local_data.dart';
+import '../../data/datasources/auth_remote_data_source.dart';
+import '../../data/models/login_request_model.dart';
+import '../../domain/repositories/auth_repository.dart';
+
+class AuthRepositoryImpl implements AuthRepository {
+  final AuthRemoteDataSource _remoteDataSource = AuthRemoteDataSource();
+
+  @override
+  Future<ApiResponse> login(LoginRequestModel loginRequest) async {
+    try {
+      final response = await _remoteDataSource.login(loginRequest);
+
+      if (response.isSuccess && response.data != null) {
+        final data = response.data;
+        print("Login Response Data: $data"); // Debug log
+
+        if (data is Map<String, dynamic>) {
+          String? accessToken;
+          String? refreshToken;
+
+          if (data['data'] != null) {
+            final authData = data['data'];
+            accessToken = authData['accessToken'] ?? authData['token'];
+            refreshToken = authData['refreshToken'];
+          } else {
+            accessToken = data['accessToken'] ?? data['token'];
+            refreshToken = data['refreshToken'];
+          }
+
+          print("Parsed Access Token: $accessToken"); // Debug log
+
+          if (accessToken != null) {
+            await LocalData.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            );
+          }
+        }
+      }
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+}

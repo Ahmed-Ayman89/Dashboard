@@ -1,8 +1,13 @@
+import 'package:dashboard_grow/core/network/api_helper.dart';
+import 'package:dashboard_grow/core/network/local_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'features/Onboarding/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  APIHelper.init();
+  await LocalData.init();
   runApp(const MyApp());
 }
 
