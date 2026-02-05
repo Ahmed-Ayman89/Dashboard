@@ -23,6 +23,7 @@ class AppColors {
   /// Default primary color
   static const Color primary = primary600;
   static const Color secondary = Color(0xFF555ECC);
+  static const Color red = Color(0xFFE53935);
 
   // ============================================================================
   // NEUTRAL COLORS (Grays)

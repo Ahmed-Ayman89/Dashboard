@@ -44,4 +44,18 @@ class AuthRepositoryImpl implements AuthRepository {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  @override
+  Future<void> logout() async {
+    await LocalData.clear();
+  }
+
+  @override
+  Future<ApiResponse> setPassword(String password) async {
+    try {
+      return await _remoteDataSource.setPassword(password);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

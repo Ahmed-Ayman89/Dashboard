@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../data/models/admin_model.dart';
 
 abstract class AdminTeamState extends Equatable {
   const AdminTeamState();
@@ -11,19 +12,30 @@ class AdminTeamInitial extends AdminTeamState {}
 
 class AdminTeamLoading extends AdminTeamState {}
 
-class AdminTeamSuccess extends AdminTeamState {
-  final String message;
+class AdminTeamLoaded extends AdminTeamState {
+  final List<AdminUser> admins;
 
-  const AdminTeamSuccess(this.message);
+  const AdminTeamLoaded(this.admins);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [admins];
 }
 
 class AdminTeamFailure extends AdminTeamState {
   final String message;
 
   const AdminTeamFailure(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+class AdminTeamActionLoading extends AdminTeamState {}
+
+class AdminTeamActionSuccess extends AdminTeamState {
+  final String message;
+
+  const AdminTeamActionSuccess(this.message);
 
   @override
   List<Object> get props => [message];

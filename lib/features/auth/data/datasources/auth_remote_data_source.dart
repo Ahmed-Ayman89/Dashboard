@@ -14,4 +14,13 @@ class AuthRemoteDataSource {
       isFormData: false,
     );
   }
+
+  Future<ApiResponse> setPassword(String password) async {
+    return await _apiHelper.postRequest(
+      endPoint: EndPoints.adminSetPassword,
+      data: {'password': password},
+      isAuthorized: true,
+      isFormData: false,
+    );
+  }
 }

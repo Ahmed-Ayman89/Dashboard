@@ -19,5 +19,14 @@ abstract class EndPoints {
   static const String customerSupportCall = 'customer/support-call';
   static const String customerProfile = 'profile/customer';
   static const String login = 'auth/login';
-  static const String inviteAdmin = 'admin/team';
+  static const String adminTeam = 'admin/team';
+  static const String adminSetPassword = 'auth/admin/set-password';
+  static const String auditLogs = 'admin/audit-logs';
+  static const String adminKiosks = 'admin/kiosks';
+  static const String workers = 'admin/workers';
+  static const String customers = 'admin/customers';
+  static const String owners = 'admin/owners';
+  static const String transactions = 'admin/transactions';
+  static const String redemptionsPending = 'admin/redemptions/pending';
+  static const String redemptionsProcess = 'admin/redemptions/process';
 }

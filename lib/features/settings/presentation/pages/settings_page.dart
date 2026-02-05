@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 
+import 'package:dashboard_grow/core/widgets/custom_snackbar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../auth/domain/usecases/set_password_usecase.dart';
+import '../../../auth/presentation/cubit/set_password_cubit.dart';
+import '../../../auth/presentation/cubit/set_password_state.dart';
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -19,12 +28,58 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           Text('Platform Settings', style: AppTextStyle.heading1),
           const SizedBox(height: 32),
+          _buildAccountSettings(),
+          const SizedBox(height: 32),
           _buildGlobalSettings(),
           const SizedBox(height: 32),
           _buildFinancialSettings(),
           const SizedBox(height: 32),
           _buildSystemRules(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAccountSettings() {
+    return _buildSettingsSection(
+      title: 'Account Settings',
+      icon: Icons.person_rounded,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Change Password',
+                style: AppTextStyle.bodyRegular,
+              ),
+              ElevatedButton(
+                onPressed: () => _showChangePasswordDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brandPrimary,
+                  foregroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Change'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => BlocProvider(
+        create: (context) => SetPasswordCubit(
+          SetPasswordUseCase(AuthRepositoryImpl()),
+        ),
+        child: const _ChangePasswordDialog(),
       ),
     );
   }
@@ -134,6 +189,180 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        'Change Password',
+        style: AppTextStyle.heading3,
+      ),
+      content: SizedBox(
+        width: 400.w,
+        child: BlocConsumer<SetPasswordCubit, SetPasswordState>(
+          listener: (context, state) {
+            if (state is SetPasswordSuccess) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                CustomSnackBar(
+                  message: state.message,
+                  type: SnackBarType.success,
+                ),
+              );
+            } else if (state is SetPasswordFailure) {
+              // Close dialog first if you want, or keep it open to show error
+              // Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                CustomSnackBar(
+                  message: state.message,
+                  type: SnackBarType.error,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 16.h),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      hintText: 'Enter new password',
+                      prefixIcon: const Icon(Icons.lock_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.brandPrimary),
+                      ),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      hintText: 'Re-enter new password',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.brandPrimary),
+                      ),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 8.h),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      actionsPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.neutral600,
+          ),
+          child: const Text('Cancel'),
+        ),
+        BlocBuilder<SetPasswordCubit, SetPasswordState>(
+          builder: (context, state) {
+            return ElevatedButton(
+              onPressed: state is SetPasswordLoading
+                  ? null
+                  : () {
+                      if (_formKey.currentState!.validate()) {
+                        context
+                            .read<SetPasswordCubit>()
+                            .setPassword(_passwordController.text);
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brandPrimary,
+                foregroundColor: AppColors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: state is SetPasswordLoading
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.h,
+                      child: const CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.white),
+                    )
+                  : const Text('Save Password'),
+            );
+          },
+        ),
+      ],
     );
   }
 }

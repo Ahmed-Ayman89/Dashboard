@@ -1,211 +1,291 @@
-import 'package:flutter/material.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
-import 'package:dashboard_grow/features/dashboard/data/models/redemption_model.dart';
+import 'package:dashboard_grow/features/redemptions/data/models/redemption_model.dart';
+import 'package:dashboard_grow/features/redemptions/data/repositories/redemptions_repository_impl.dart';
+import 'package:dashboard_grow/features/redemptions/domain/usecases/get_redemptions_usecase.dart';
+import 'package:dashboard_grow/features/redemptions/domain/usecases/process_redemption_usecase.dart';
+import 'package:dashboard_grow/features/redemptions/presentation/cubit/redemptions_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-class RedemptionsPage extends StatefulWidget {
+class RedemptionsPage extends StatelessWidget {
   const RedemptionsPage({super.key});
 
   @override
-  State<RedemptionsPage> createState() => _RedemptionsPageState();
-}
-
-class _RedemptionsPageState extends State<RedemptionsPage> {
-  final List<RedemptionModel> _dummyRedemptions = [
-    RedemptionModel(
-      id: 'RD8001',
-      userType: UserType.owner,
-      userName: 'Ahmed Mohamed',
-      amount: 500.0,
-      paymentMethod: 'Vodafone Cash',
-      paymentDetails: '01012345678',
-      requestedAt: DateTime.now().subtract(const Duration(hours: 4)),
-      status: RedemptionStatus.pending,
-    ),
-    RedemptionModel(
-      id: 'RD8002',
-      userType: UserType.worker,
-      userName: 'Sami Ali',
-      amount: 150.0,
-      paymentMethod: 'InstaPay',
-      paymentDetails: 'sami@instapay',
-      requestedAt: DateTime.now().subtract(const Duration(days: 1)),
-      status: RedemptionStatus.approved,
-    ),
-    RedemptionModel(
-      id: 'RD8003',
-      userType: UserType.customer,
-      userName: 'Mona Zein',
-      amount: 50.0,
-      paymentMethod: 'Bank Transfer',
-      paymentDetails: 'Account: 12345678',
-      requestedAt: DateTime.now().subtract(const Duration(minutes: 30)),
-      status: RedemptionStatus.rejected,
-    ),
-  ];
-
-  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Redemption Requests', style: AppTextStyle.heading1),
-          const SizedBox(height: 32),
-          _buildSummaryCards(),
-          const SizedBox(height: 32),
-          Expanded(child: _buildRedemptionsQueue()),
-        ],
-      ),
+    return BlocProvider(
+      create: (context) {
+        final repository = RedemptionsRepositoryImpl();
+        return RedemptionsCubit(
+          GetRedemptionsUseCase(repository),
+          ProcessRedemptionUseCase(repository),
+        )..getRedemptions();
+      },
+      child: const _RedemptionsView(),
     );
   }
+}
 
-  Widget _buildSummaryCards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 800) {
-          return Column(
-            children: [
-              _buildMiniCard('Pending', '15', AppColors.warning),
-              const SizedBox(height: 16),
-              _buildMiniCard(
-                  'Total Today', '1,250 EGP', AppColors.brandPrimary),
-              const SizedBox(height: 16),
-              _buildMiniCard('Processed', '42', AppColors.success),
-            ],
-          );
-        }
-        return Row(
-          children: [
-            Expanded(child: _buildMiniCard('Pending', '15', AppColors.warning)),
-            const SizedBox(width: 24),
-            Expanded(
-                child: _buildMiniCard(
-                    'Total Today', '1,250 EGP', AppColors.brandPrimary)),
-            const SizedBox(width: 24),
-            Expanded(
-                child: _buildMiniCard('Processed', '42', AppColors.success)),
-          ],
+class _RedemptionsView extends StatelessWidget {
+  const _RedemptionsView();
+
+  void _showProcessDialog(BuildContext context, String id) {
+    final noteController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Process Redemption', style: AppTextStyle.heading3),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Do you want to Approve or Reject this redemption request?',
+                    style: AppTextStyle.bodyRegular
+                        .copyWith(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: noteController,
+                    decoration: InputDecoration(
+                      labelText: 'Note (Optional)',
+                      labelStyle: AppTextStyle.bodyMedium,
+                      hintText: 'Add a note for the user...',
+                      hintStyle: AppTextStyle.bodySmall
+                          .copyWith(color: AppColors.neutral400),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.neutral300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.brandPrimary),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.neutral500,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                    ),
+                    maxLines: 3,
+                    style: AppTextStyle.bodyRegular,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        child: Text('Cancel',
+                            style: AppTextStyle.button
+                                .copyWith(color: AppColors.neutral600)),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () {
+                          context.read<RedemptionsCubit>().processRedemption(
+                                id: id,
+                                action: 'REJECT',
+                                note: noteController.text,
+                              );
+                          Navigator.pop(dialogContext);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          side: const BorderSide(color: AppColors.error),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: Text('Reject',
+                            style: AppTextStyle.button
+                                .copyWith(color: AppColors.error)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<RedemptionsCubit>().processRedemption(
+                                id: id,
+                                action: 'APPROVE',
+                                note: noteController.text,
+                              );
+                          Navigator.pop(dialogContext);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        child: Text('Approve', style: AppTextStyle.button),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildMiniCard(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTextStyle.bodySmall),
-                const SizedBox(height: 8),
-                Text(value,
-                    style: AppTextStyle.heading3.copyWith(color: color)),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffF8FAFC),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Redemptions Requests', style: AppTextStyle.heading2),
+            const SizedBox(height: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.neutral200),
+                ),
+                child: BlocConsumer<RedemptionsCubit, RedemptionsState>(
+                  listener: (context, state) {
+                    if (state is RedemptionProcessSuccess) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    } else if (state is RedemptionsFailure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is RedemptionsLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is RedemptionsLoaded) {
+                      return _buildList(context, state.redemptions);
+                    } else if (state is RedemptionsFailure) {
+                      return Center(
+                        child: Text(state.message,
+                            style: AppTextStyle.bodyRegular
+                                .copyWith(color: AppColors.error)),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildRedemptionsQueue() {
-    return Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: SingleChildScrollView(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-                columns: const [
-                  DataColumn(label: Text('User')),
-                  DataColumn(label: Text('Type')),
-                  DataColumn(label: Text('Amount')),
-                  DataColumn(label: Text('Method')),
-                  DataColumn(label: Text('Date')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Action')),
-                ],
-                rows: _dummyRedemptions.map((red) {
-                  return DataRow(cells: [
-                    DataCell(Text(red.userName,
-                        style: const TextStyle(fontWeight: FontWeight.bold))),
-                    DataCell(Text(red.userType.name.toUpperCase())),
-                    DataCell(Text('${red.amount.toStringAsFixed(0)} EGP')),
-                    DataCell(Text(red.paymentMethod)),
-                    DataCell(Text(
-                        DateFormat('MMM dd, HH:mm').format(red.requestedAt))),
-                    DataCell(_buildStatusBadge(red.status)),
-                    DataCell(
-                      red.status == RedemptionStatus.pending
-                          ? Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.check_circle_rounded,
-                                      color: AppColors.success),
-                                  onPressed: () {},
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.cancel_rounded,
-                                      color: AppColors.error),
-                                  onPressed: () {},
-                                ),
-                              ],
-                            )
-                          : const Text('-'),
-                    ),
-                  ]);
-                }).toList(),
-              ),
-            ),
-          ),
-        ));
-  }
-
-  Widget _buildStatusBadge(RedemptionStatus status) {
-    Color color;
-    switch (status) {
-      case RedemptionStatus.pending:
-        color = AppColors.warning;
-        break;
-      case RedemptionStatus.approved:
-        color = AppColors.success;
-        break;
-      case RedemptionStatus.rejected:
-        color = AppColors.error;
-        break;
+  Widget _buildList(BuildContext context, List<RedemptionModel> redemptions) {
+    if (redemptions.isEmpty) {
+      return Center(
+          child: Text('No pending redemptions',
+              style: AppTextStyle.bodyRegular
+                  .copyWith(color: AppColors.neutral500)));
     }
 
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: AppColors.neutral200,
+          dataTableTheme: DataTableThemeData(
+            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+            dataRowColor: WidgetStateProperty.all(AppColors.white),
+          ),
+        ),
+        child: DataTable(
+          columns: [
+            DataColumn(label: Text('Date', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Phone', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Role', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Amount', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Method', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Details', style: AppTextStyle.caption)),
+            DataColumn(label: Text('Actions', style: AppTextStyle.caption)),
+          ],
+          rows: redemptions.map((redemption) {
+            return DataRow(cells: [
+              DataCell(Text(
+                  DateFormat('MMM d, yyyy').format(redemption.createdAt),
+                  style: AppTextStyle.bodySmall)),
+              DataCell(
+                  Text(redemption.userPhone, style: AppTextStyle.bodySmall)),
+              DataCell(_buildRoleBadge(redemption.userRole)),
+              DataCell(Text('${redemption.amount.toStringAsFixed(2)} EGP',
+                  style: AppTextStyle.bodySmall)),
+              DataCell(Text(redemption.method, style: AppTextStyle.bodySmall)),
+              DataCell(Text(redemption.details, style: AppTextStyle.bodySmall)),
+              DataCell(
+                ElevatedButton(
+                  onPressed: () => _showProcessDialog(context, redemption.id),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: Text(
+                    'Process',
+                    style: AppTextStyle.setCairoWhite(
+                        fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ]);
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleBadge(String role) {
+    Color color = AppColors.neutral600;
+    if (role.toUpperCase() == 'WORKER') color = AppColors.brandSecondary;
+    if (role.toUpperCase() == 'CUSTOMER') color = AppColors.secondary;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Text(
-        status.name.toUpperCase(),
+        role.toUpperCase(),
         style: AppTextStyle.caption
             .copyWith(color: color, fontWeight: FontWeight.bold),
       ),

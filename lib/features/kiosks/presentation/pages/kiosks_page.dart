@@ -1,43 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
-import 'package:dashboard_grow/features/dashboard/data/models/kiosk_model.dart';
 
-class KiosksPage extends StatefulWidget {
+import '../../data/repositories/kiosks_repository_impl.dart';
+import '../../domain/usecases/get_kiosks_usecase.dart';
+import '../cubit/kiosks_cubit.dart';
+import '../cubit/kiosks_state.dart';
+import 'kiosk_details_page.dart';
+
+class KiosksPage extends StatelessWidget {
   const KiosksPage({super.key});
 
   @override
-  State<KiosksPage> createState() => _KiosksPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => KiosksCubit(
+        GetKiosksUseCase(KiosksRepositoryImpl()),
+      )..getKiosks(),
+      child: const _KiosksView(),
+    );
+  }
 }
 
-class _KiosksPageState extends State<KiosksPage> {
-  final List<KioskModel> _dummyKiosks = [
-    KioskModel(
-      id: '1',
-      name: 'City Mall Kiosk',
-      location: 'Cairo, Egypt',
-      ownerName: 'Ahmed Mohamed',
-      dues: 1200.0,
-      dailyTransactions: 45,
-    ),
-    KioskModel(
-      id: '2',
-      name: 'Downtown Kiosk',
-      location: 'Alexandria, Egypt',
-      ownerName: 'Sara Ahmed',
-      dues: 300.0,
-      dailyTransactions: 12,
-      isSuspended: true,
-    ),
-    KioskModel(
-      id: '3',
-      name: 'Green Plaza',
-      location: 'Giza, Egypt',
-      ownerName: 'Mahmoud Ali',
-      dues: 0.0,
-      dailyTransactions: 89,
-    ),
-  ];
+class _KiosksView extends StatelessWidget {
+  const _KiosksView();
 
   @override
   Widget build(BuildContext context) {
@@ -123,44 +110,94 @@ class _KiosksPageState extends State<KiosksPage> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: SingleChildScrollView(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-                columns: const [
-                  DataColumn(label: Text('Kiosk Name')),
-                  DataColumn(label: Text('Owner')),
-                  DataColumn(label: Text('Location')),
-                  DataColumn(label: Text('Daily TX')),
-                  DataColumn(label: Text('Dues')),
-                  DataColumn(label: Text('Status')),
-                ],
-                rows: _dummyKiosks.map((kiosk) {
-                  return DataRow(cells: [
-                    DataCell(Text(kiosk.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold))),
-                    DataCell(Text(kiosk.ownerName)),
-                    DataCell(Text(kiosk.location)),
-                    DataCell(Text(kiosk.dailyTransactions.toString())),
-                    DataCell(
-                      Text(
-                        '${kiosk.dues.toStringAsFixed(0)} EGP',
-                        style: TextStyle(
-                          color: kiosk.dues > 1000
-                              ? AppColors.error
-                              : AppColors.textPrimary,
-                          fontWeight: kiosk.dues > 1000
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
+          child: BlocBuilder<KiosksCubit, KiosksState>(
+            builder: (context, state) {
+              if (state is KiosksLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is KiosksFailure) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(state.message,
+                          style: const TextStyle(color: AppColors.error)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            context.read<KiosksCubit>().getKiosks(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
                       ),
+                    ],
+                  ),
+                );
+              } else if (state is KiosksSuccess) {
+                if (state.kiosks.isEmpty) {
+                  return const Center(child: Text('No kiosks found.'));
+                }
+                return SingleChildScrollView(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor:
+                          WidgetStateProperty.all(AppColors.neutral100),
+                      columns: const [
+                        DataColumn(label: Text('Kiosk Name')),
+                        DataColumn(label: Text('Owner')),
+                        DataColumn(label: Text('Location')),
+                        DataColumn(label: Text('Daily TX')),
+                        DataColumn(label: Text('Dues')),
+                        DataColumn(label: Text('Status')),
+                      ],
+                      rows: state.kiosks.map((kiosk) {
+                        return DataRow(
+                            onSelectChanged: (_) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      KioskDetailsPage(kioskId: kiosk.id),
+                                ),
+                              );
+                            },
+                            cells: [
+                              DataCell(Text(kiosk.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold))),
+                              DataCell(Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(kiosk.owner.fullName),
+                                  Text(kiosk.owner.phone,
+                                      style: AppTextStyle.caption),
+                                ],
+                              )),
+                              DataCell(Text(kiosk.location ?? 'N/A')),
+                              DataCell(
+                                  Text(kiosk.dailyTransactions.toString())),
+                              DataCell(
+                                Text(
+                                  '${kiosk.pendingDues.toStringAsFixed(0)} EGP',
+                                  style: TextStyle(
+                                    color: kiosk.pendingDues > 1000
+                                        ? AppColors.error
+                                        : AppColors.textPrimary,
+                                    fontWeight: kiosk.pendingDues > 1000
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                              DataCell(_buildStatusBadge(!kiosk.isActive)),
+                            ]);
+                      }).toList(),
                     ),
-                    DataCell(_buildStatusBadge(kiosk.isSuspended)),
-                  ]);
-                }).toList(),
-              ),
-            ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ));
   }
