@@ -41,4 +41,15 @@ class DashboardRemoteDataSource {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  Future<ApiResponse> getDashboardStats() async {
+    try {
+      final response = await APIHelper().getRequest(
+        endPoint: EndPoints.dashboard,
+      );
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

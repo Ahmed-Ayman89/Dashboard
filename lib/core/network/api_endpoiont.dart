@@ -22,6 +22,7 @@ abstract class EndPoints {
   static const String adminTeam = 'admin/team';
   static const String adminSetPassword = 'auth/admin/set-password';
   static const String auditLogs = 'admin/audit-logs';
+  static const String dashboard = 'admin/dashboard';
   static const String dashboardGraph = 'admin/dashboard/graph';
   static const String adminKiosks = 'admin/kiosks';
   static const String workers = 'admin/workers';

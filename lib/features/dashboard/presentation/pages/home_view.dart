@@ -6,9 +6,13 @@ import '../widgets/summary_card.dart';
 import '../widgets/analytics_chart.dart';
 import '../widgets/filtered_analytics_chart.dart';
 import '../cubit/graph_cubit.dart';
+import '../cubit/dashboard_stats_cubit.dart';
+import '../cubit/dashboard_stats_state.dart';
 import '../../data/datasources/dashboard_remote_data_source.dart';
 import '../../data/repositories/graph_repository_impl.dart';
+import '../../data/repositories/dashboard_stats_repository_impl.dart';
 import '../../domain/usecases/get_graph_data_usecase.dart';
+import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class HomeView extends StatelessWidget {
@@ -18,14 +22,27 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isMobile = MediaQuery.of(context).size.width < 800;
 
-    return BlocProvider(
-      create: (context) => GraphCubit(
-        GetGraphDataUseCase(
-          GraphRepositoryImpl(
-            remoteDataSource: DashboardRemoteDataSource(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => GraphCubit(
+            GetGraphDataUseCase(
+              GraphRepositoryImpl(
+                remoteDataSource: DashboardRemoteDataSource(),
+              ),
+            ),
           ),
         ),
-      ),
+        BlocProvider(
+          create: (context) => DashboardStatsCubit(
+            GetDashboardStatsUseCase(
+              DashboardStatsRepositoryImpl(
+                remoteDataSource: DashboardRemoteDataSource(),
+              ),
+            ),
+          )..loadDashboardStats(),
+        ),
+      ],
       child: SingleChildScrollView(
         padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
         child: Column(
@@ -193,63 +210,87 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildKpiGrid(BuildContext context, bool isMobile) {
-    final kpis = [
-      {
-        'title': 'Total Kiosks',
-        'value': '124',
-        'icon': Icons.store_rounded,
-        'color': AppColors.primary
-      },
-      {
-        'title': 'Total Workers',
-        'value': '450',
-        'icon': Icons.engineering_rounded,
-        'color': AppColors.secondary
-      },
-      {
-        'title': 'Total Customers',
-        'value': '12,840',
-        'icon': Icons.people_rounded,
-        'color': AppColors.success
-      },
-      {
-        'title': 'Total Transactions',
-        'value': '85,200',
-        'icon': Icons.receipt_long_rounded,
-        'color': AppColors.warning
-      },
-      {
-        'title': 'Points Sent',
-        'value': '1.2M',
-        'icon': Icons.send_rounded,
-        'color': AppColors.brandPrimary
-      },
-      {
-        'title': 'Dues Pending',
-        'value': '45,000 EGP',
-        'icon': Icons.account_balance_wallet_rounded,
-        'color': AppColors.error
-      },
-    ];
+    return BlocBuilder<DashboardStatsCubit, DashboardStatsState>(
+      builder: (context, state) {
+        if (state is DashboardStatsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isMobile ? 1 : 3,
-        crossAxisSpacing: 24,
-        mainAxisSpacing: 24,
-        childAspectRatio: isMobile ? 3.5 : 2.5,
-      ),
-      itemCount: kpis.length,
-      itemBuilder: (context, index) {
-        final kpi = kpis[index];
-        return SummaryCard(
-          title: kpi['title'] as String,
-          value: kpi['value'] as String,
-          icon: kpi['icon'] as IconData,
-          color: kpi['color'] as Color,
-        );
+        if (state is DashboardStatsError) {
+          return Center(
+            child: Text(
+              'Error loading stats: ${state.message}',
+              style: AppTextStyle.bodyMedium.copyWith(color: AppColors.error),
+            ),
+          );
+        }
+
+        if (state is DashboardStatsSuccess) {
+          final totals = state.stats.totals;
+
+          final kpis = [
+            {
+              'title': 'Total Kiosks',
+              'value': '${totals.kiosks}',
+              'icon': Icons.store_rounded,
+              'color': AppColors.primary
+            },
+            {
+              'title': 'Total Workers',
+              'value': '${totals.workers}',
+              'icon': Icons.engineering_rounded,
+              'color': AppColors.secondary
+            },
+            {
+              'title': 'Total Customers',
+              'value': '${totals.customers}',
+              'icon': Icons.people_rounded,
+              'color': AppColors.success
+            },
+            {
+              'title': 'Total Transactions',
+              'value': '${totals.transactions}',
+              'icon': Icons.receipt_long_rounded,
+              'color': AppColors.warning
+            },
+            {
+              'title': 'Points Sent',
+              'value': totals.pointsSent,
+              'icon': Icons.send_rounded,
+              'color': AppColors.brandPrimary
+            },
+            {
+              'title': 'Dues Pending',
+              'value': '${totals.duesPending} EGP',
+              'icon': Icons.account_balance_wallet_rounded,
+              'color': AppColors.error
+            },
+          ];
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isMobile ? 2 : 3,
+              crossAxisSpacing: isMobile ? 12 : 24,
+              mainAxisSpacing: isMobile ? 12 : 24,
+              childAspectRatio: isMobile ? 1.4 : 2.1,
+            ),
+            itemCount: kpis.length,
+            itemBuilder: (context, index) {
+              final kpi = kpis[index];
+              return SummaryCard(
+                title: kpi['title'] as String,
+                value: kpi['value'] as String,
+                icon: kpi['icon'] as IconData,
+                color: kpi['color'] as Color,
+              );
+            },
+          );
+        }
+
+        // Initial state
+        return const SizedBox.shrink();
       },
     );
   }
