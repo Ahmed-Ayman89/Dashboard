@@ -212,8 +212,12 @@ class _CustomerDetailsView extends StatelessWidget {
                     const Icon(Icons.phone,
                         size: 16, color: AppColors.neutral500),
                     const SizedBox(width: 8),
-                    Text(profile.phone, style: AppTextStyle.bodyRegular),
-                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(profile.phone,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.bodyRegular),
+                    ),
+                    const SizedBox(width: 8),
                     _buildStatusBadge(profile.isActive),
                     if (profile.isVerified) ...[
                       const SizedBox(width: 8),
@@ -228,11 +232,14 @@ class _CustomerDetailsView extends StatelessWidget {
                     const Icon(Icons.calendar_today,
                         size: 14, color: AppColors.neutral500),
                     const SizedBox(width: 4),
-                    Text(
-                      'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
-                      style: AppTextStyle.caption,
+                    Expanded(
+                      child: Text(
+                        'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.caption,
+                      ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 8),
                     Icon(Icons.smartphone,
                         size: 14,
                         color: profile.appDownloaded
@@ -685,9 +692,12 @@ class _CustomerDetailsView extends StatelessWidget {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 12),
-              Text(title,
-                  style: AppTextStyle.bodySmall
-                      .copyWith(color: AppColors.neutral500)),
+              Expanded(
+                child: Text(title,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.bodySmall
+                        .copyWith(color: AppColors.neutral500)),
+              ),
             ],
           ),
           const SizedBox(height: 16),

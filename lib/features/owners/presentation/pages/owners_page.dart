@@ -136,17 +136,20 @@ class _OwnersViewState extends State<_OwnersView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Owners Management', style: AppTextStyle.heading1),
-            const SizedBox(height: 8),
-            Text(
-              'Manage and verify kiosk owners',
-              style: AppTextStyle.bodyMedium,
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Owners Management', style: AppTextStyle.heading1),
+              const SizedBox(height: 8),
+              Text(
+                'Manage and verify kiosk owners',
+                style: AppTextStyle.bodyMedium,
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 16),
         SizedBox(
           width: 300,
           child: TextField(
@@ -184,86 +187,95 @@ class _OwnersViewState extends State<_OwnersView> {
   }
 
   Widget _buildTable(BuildContext context, List<OwnerModel> owners) {
-    return DataTable(
-      headingRowColor:
-          WidgetStateProperty.all(AppColors.neutral100.withOpacity(0.5)),
-      dataRowColor: WidgetStateProperty.resolveWith<Color?>((states) {
-        if (states.contains(WidgetState.hovered)) {
-          return AppColors.primary.withOpacity(0.05);
-        }
-        return null; // Use default
-      }),
-      horizontalMargin: 24,
-      columnSpacing: 24,
-      dividerThickness: 0, // Cleaner look
-      columns: [
-        DataColumn(
-            label: Text('Owner Info',
-                style: AppTextStyle.bodySmall
-                    .copyWith(fontWeight: FontWeight.bold))),
-        DataColumn(
-            label: Text('Status',
-                style: AppTextStyle.bodySmall
-                    .copyWith(fontWeight: FontWeight.bold))),
-        DataColumn(
-            label: Text('Joined Date',
-                style: AppTextStyle.bodySmall
-                    .copyWith(fontWeight: FontWeight.bold))),
-        DataColumn(
-            label: Text('Actions',
-                style: AppTextStyle.bodySmall
-                    .copyWith(fontWeight: FontWeight.bold))),
-      ],
-      rows: owners.map((owner) {
-        return DataRow(
-          cells: [
-            DataCell(
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Text(
-                      owner.fullName.isNotEmpty ? owner.fullName[0] : '?',
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowColor:
+            WidgetStateProperty.all(AppColors.neutral100.withOpacity(0.5)),
+        dataRowColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.hovered)) {
+            return AppColors.primary.withOpacity(0.05);
+          }
+          return null; // Use default
+        }),
+        horizontalMargin: 24,
+        columnSpacing: 24,
+        dividerThickness: 0, // Cleaner look
+        columns: [
+          DataColumn(
+              label: Text('Owner Info',
+                  style: AppTextStyle.bodySmall
+                      .copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Status',
+                  style: AppTextStyle.bodySmall
+                      .copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Joined Date',
+                  style: AppTextStyle.bodySmall
+                      .copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Actions',
+                  style: AppTextStyle.bodySmall
+                      .copyWith(fontWeight: FontWeight.bold))),
+        ],
+        rows: owners.map((owner) {
+          return DataRow(
+            cells: [
+              DataCell(
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: Text(
+                        owner.fullName.isNotEmpty ? owner.fullName[0] : '?',
+                        style: AppTextStyle.bodySmall
+                            .copyWith(color: AppColors.primary),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(owner.fullName,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.bodyMedium
+                                  .copyWith(fontWeight: FontWeight.bold)),
+                          Text(owner.phone,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.caption),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              DataCell(_buildStatusBadge(owner.status)),
+              DataCell(Text(DateFormat('MMM d, yyyy').format(owner.createdAt),
+                  style: AppTextStyle.bodySmall)),
+              DataCell(
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            OwnerDetailsPage(ownerId: owner.id),
+                      ),
+                    );
+                  },
+                  child: Text('View Details',
                       style: AppTextStyle.bodySmall
-                          .copyWith(color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(owner.fullName,
-                          style: AppTextStyle.bodyMedium
-                              .copyWith(fontWeight: FontWeight.bold)),
-                      Text(owner.phone, style: AppTextStyle.caption),
-                    ],
-                  ),
-                ],
+                          .copyWith(color: AppColors.primary)),
+                ),
               ),
-            ),
-            DataCell(_buildStatusBadge(owner.status)),
-            DataCell(Text(DateFormat('MMM d, yyyy').format(owner.createdAt),
-                style: AppTextStyle.bodySmall)),
-            DataCell(
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OwnerDetailsPage(ownerId: owner.id),
-                    ),
-                  );
-                },
-                child: Text('View Details',
-                    style: AppTextStyle.bodySmall
-                        .copyWith(color: AppColors.primary)),
-              ),
-            ),
-          ],
-        );
-      }).toList(),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 

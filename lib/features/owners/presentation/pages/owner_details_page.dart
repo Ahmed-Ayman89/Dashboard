@@ -118,7 +118,10 @@ class _OwnerDetailsView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTextStyle.heading3),
+        Expanded(
+          child: Text(title,
+              overflow: TextOverflow.ellipsis, style: AppTextStyle.heading3),
+        ),
       ],
     );
   }
@@ -155,13 +158,20 @@ class _OwnerDetailsView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Text(profile.fullName, style: AppTextStyle.heading2),
-                        const SizedBox(width: 12),
-                        _buildStatusBadge(profile.status),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(profile.fullName,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyle.heading2),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatusBadge(profile.status),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     _buildActionButton(context, profile),
                   ],
                 ),
@@ -171,17 +181,23 @@ class _OwnerDetailsView extends StatelessWidget {
                     const Icon(Icons.phone,
                         size: 16, color: AppColors.neutral500),
                     const SizedBox(width: 8),
-                    Text(profile.phone,
-                        style: AppTextStyle.bodyRegular
-                            .copyWith(color: AppColors.neutral600)),
+                    Expanded(
+                      child: Text(profile.phone,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.bodyRegular
+                              .copyWith(color: AppColors.neutral600)),
+                    ),
                     const SizedBox(width: 24),
                     const Icon(Icons.calendar_today,
                         size: 16, color: AppColors.neutral500),
                     const SizedBox(width: 8),
-                    Text(
-                        'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
-                        style: AppTextStyle.bodyRegular
-                            .copyWith(color: AppColors.neutral600)),
+                    Expanded(
+                      child: Text(
+                          'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.bodyRegular
+                              .copyWith(color: AppColors.neutral600)),
+                    ),
                   ],
                 ),
               ],
@@ -463,9 +479,12 @@ class _OwnerDetailsView extends StatelessWidget {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 12),
-              Text(title,
-                  style: AppTextStyle.bodySmall
-                      .copyWith(color: AppColors.neutral500)),
+              Expanded(
+                child: Text(title,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.bodySmall
+                        .copyWith(color: AppColors.neutral500)),
+              ),
             ],
           ),
           const SizedBox(height: 16),

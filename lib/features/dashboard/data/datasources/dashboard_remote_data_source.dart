@@ -17,4 +17,28 @@ class DashboardRemoteDataSource {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  Future<ApiResponse> getGraphData({
+    required String filter,
+    required String resource,
+    String? from,
+    String? to,
+  }) async {
+    try {
+      final queryParams = {
+        'filter': filter,
+        'resource': resource,
+        if (from != null) 'from': from,
+        if (to != null) 'to': to,
+      };
+
+      final response = await APIHelper().getRequest(
+        endPoint: EndPoints.dashboardGraph,
+        queryParameters: queryParams,
+      );
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

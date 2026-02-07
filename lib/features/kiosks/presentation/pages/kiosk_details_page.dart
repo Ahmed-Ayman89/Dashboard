@@ -251,7 +251,11 @@ class _KioskDetailsView extends StatelessWidget {
               const Icon(Icons.person_outline,
                   color: AppColors.textPrimary, size: 24),
               const SizedBox(width: 8),
-              Text('Owner Details', style: AppTextStyle.heading3),
+              Expanded(
+                child: Text('Owner Details',
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.heading3),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -281,25 +285,32 @@ class _KioskDetailsView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => KioskDuesDetailsPage(kioskId: kioskId),
-                ));
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_wallet_outlined,
-                        color: AppColors.textPrimary, size: 24),
-                    const SizedBox(width: 8),
-                    Text('Financials', style: AppTextStyle.heading3),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right,
-                        color: AppColors.neutral500, size: 20),
-                  ],
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) =>
+                        KioskDuesDetailsPage(kioskId: kioskId),
+                  ));
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.account_balance_wallet_outlined,
+                          color: AppColors.textPrimary, size: 24),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text('Dues Details',
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.heading3),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right,
+                          color: AppColors.neutral500, size: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -333,13 +344,22 @@ class _KioskDetailsView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: AppTextStyle.bodyRegular
-                  .copyWith(color: AppColors.textSecondary)),
-          Text(value,
-              style: AppTextStyle.bodyRegular.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isError ? AppColors.error : AppColors.textPrimary)),
+          Expanded(
+            flex: 2,
+            child: Text(label,
+                style: AppTextStyle.bodyRegular
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(value,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: AppTextStyle.bodyRegular.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isError ? AppColors.error : AppColors.textPrimary)),
+          ),
         ],
       ),
     );

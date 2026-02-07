@@ -297,9 +297,14 @@ class _WorkerDetailsView extends StatelessWidget {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 12),
-              Text(title,
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyle.bodySmall
-                      .copyWith(color: AppColors.neutral500)),
+                      .copyWith(color: AppColors.neutral500),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),

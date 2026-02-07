@@ -86,8 +86,10 @@ class _RedemptionsView extends StatelessWidget {
                     style: AppTextStyle.bodyRegular,
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogContext),

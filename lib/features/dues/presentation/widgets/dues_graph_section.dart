@@ -47,8 +47,11 @@ class DuesGraphSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Top Kiosks by Outstanding Dues',
-                  style: AppTextStyle.heading3),
+              Expanded(
+                child: Text('Top Kiosks by Outstanding Dues',
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.heading3),
+              ),
             ],
           ),
           const SizedBox(height: 32),
