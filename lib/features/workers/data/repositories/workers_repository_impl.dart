@@ -21,4 +21,24 @@ class WorkersRepositoryImpl implements WorkersRepository {
   Future<ApiResponse> getWorkerDetails(String id) async {
     return await _dataSource.getWorkerDetails(id);
   }
+
+  @override
+  Future<ApiResponse> deleteWorkerById(
+      String id, String kioskId, String profileId) async {
+    return await _dataSource.deleteWorker(id, kioskId, profileId);
+  }
+
+  @override
+  Future<ApiResponse> banWorkerById(String id) async {
+    return await _dataSource.banWorker(id);
+  }
+
+  @override
+  Future<ApiResponse> getWorkerGraph(
+      {required String id,
+      String resource = 'transactions_amount',
+      String filter = 'weekly'}) async {
+    return await _dataSource.getWorkerGraph(
+        id: id, resource: resource, filter: filter);
+  }
 }

@@ -16,12 +16,15 @@ class LoginCubit extends Cubit<LoginState> {
         LoginRequestModel(phone: phone, password: password),
       );
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         emit(LoginSuccess());
       } else {
         emit(LoginFailure(response.message ?? 'Login failed'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(LoginFailure(e.toString()));
     }
   }

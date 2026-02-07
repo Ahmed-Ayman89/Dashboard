@@ -16,6 +16,7 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
   Future<void> getRedemptions() async {
     emit(RedemptionsLoading());
     final response = await getRedemptionsUseCase();
+    if (isClosed) return;
 
     if (response.error == null) {
       final List<dynamic> data = response.data['data']['redemptions'];
@@ -41,6 +42,7 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
       action: action,
       note: note,
     );
+    if (isClosed) return;
 
     if (response.error == null) {
       emit(RedemptionProcessSuccess(

@@ -3,8 +3,13 @@ import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/core/widgets/custom_snackbar.dart';
 import 'package:dashboard_grow/features/workers/data/models/worker_details_model.dart';
 import 'package:dashboard_grow/features/workers/data/repositories/workers_repository_impl.dart';
+import 'package:dashboard_grow/features/workers/domain/usecases/ban_worker_usecase.dart';
+import 'package:dashboard_grow/features/workers/domain/usecases/delete_worker_usecase.dart';
 import 'package:dashboard_grow/features/workers/domain/usecases/get_worker_details_usecase.dart';
 import 'package:dashboard_grow/features/workers/presentation/cubit/worker_details_cubit.dart';
+import 'package:dashboard_grow/features/workers/domain/usecases/get_worker_graph_usecase.dart';
+import 'package:dashboard_grow/features/workers/presentation/cubit/worker_graph_cubit.dart';
+import 'package:dashboard_grow/features/workers/presentation/widgets/worker_graph_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -15,20 +20,37 @@ class WorkerDetailsPage extends StatelessWidget {
   const WorkerDetailsPage({super.key, required this.workerId});
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final repository = WorkersRepositoryImpl();
-        return WorkerDetailsCubit(GetWorkerDetailsUseCase(repository))
-          ..getWorkerDetails(workerId);
-      },
-      child: const _WorkerDetailsView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final repository = WorkersRepositoryImpl();
+            return WorkerDetailsCubit(
+              getWorkerDetailsUseCase: GetWorkerDetailsUseCase(repository),
+              deleteWorkerUseCase: DeleteWorkerUseCase(repository),
+              banWorkerUseCase: BanWorkerUseCase(repository),
+            )..getWorkerDetails(workerId);
+          },
+        ),
+        BlocProvider(
+          create: (context) {
+            final repository = WorkersRepositoryImpl();
+            return WorkerGraphCubit(
+              GetWorkerGraphUseCase(repository),
+            );
+          },
+        ),
+      ],
+      child: _WorkerDetailsView(workerId: workerId),
     );
   }
 }
 
 class _WorkerDetailsView extends StatelessWidget {
-  const _WorkerDetailsView();
+  final String? workerId;
+  const _WorkerDetailsView({this.workerId});
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +65,46 @@ class _WorkerDetailsView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          BlocBuilder<WorkerDetailsCubit, WorkerDetailsState>(
+            builder: (context, state) {
+              if (state is WorkerDetailsLoaded) {
+                final isBanned = !state.worker.profile.isActive;
+                return IconButton(
+                  icon: Icon(
+                    isBanned ? Icons.check_circle_outline : Icons.block,
+                    color: isBanned ? AppColors.success : AppColors.error,
+                  ),
+                  tooltip: isBanned ? 'Unban Worker' : 'Ban Worker',
+                  onPressed: () {
+                    _showBanConfirmationDialog(
+                        context, state.worker.profile.id, isBanned);
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: BlocConsumer<WorkerDetailsCubit, WorkerDetailsState>(
         listener: (context, state) {
           if (state is WorkerDetailsFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              CustomSnackBar(
+                message: state.message,
+                type: SnackBarType.error,
+              ),
+            );
+          } else if (state is WorkerDetailsActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              CustomSnackBar(
+                message: state.message,
+                type: SnackBarType.success,
+              ),
+            );
+          } else if (state is WorkerDetailsActionFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               CustomSnackBar(
                 message: state.message,
@@ -68,7 +126,11 @@ class _WorkerDetailsView extends StatelessWidget {
                   _buildProfileHeader(worker.profile),
                   const SizedBox(height: 24),
                   _buildStatsCards(worker),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  if (workerId != null) ...[
+                    WorkerGraphSection(workerId: workerId!),
+                    const SizedBox(height: 32),
+                  ],
                   Text('Assigned Kiosks', style: AppTextStyle.heading3),
                   const SizedBox(height: 16),
                   _buildKiosksList(worker.kiosks),
@@ -90,13 +152,7 @@ class _WorkerDetailsView extends StatelessWidget {
                 TextButton(
                     onPressed: () => context
                         .read<WorkerDetailsCubit>()
-                        .getWorkerDetails(context
-                                .read<WorkerDetailsCubit>()
-                                .state is WorkerDetailsFailure
-                            ? ''
-                            : ''), // This is a bit hacky, normally we'd pass ID again or store it.
-                    // Better approach: Since we create Cubit in Page, let's just use empty string or ideally passed ID if we had access.
-                    // Actually, we need access to ID. Let's fix this in retry logic or just show message.
+                        .getWorkerDetails(workerId ?? ''),
                     child: const Text('Retry'))
               ],
             ));
@@ -301,7 +357,24 @@ class _WorkerDetailsView extends StatelessWidget {
                             style: AppTextStyle.caption),
                       ],
                     ),
-                    _buildStatusBadge(kiosk.status == 'ACTIVE'),
+                    Row(
+                      children: [
+                        _buildStatusBadge(kiosk.status == 'ACTIVE'),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: AppColors.error),
+                          tooltip: 'Remove from Kiosk',
+                          onPressed: () {
+                            _showDeleteConfirmationDialog(
+                                context,
+                                kiosk.kioskId,
+                                kiosk.kioskName,
+                                kiosk.profileId);
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -455,5 +528,76 @@ class _WorkerDetailsView extends StatelessWidget {
       default:
         return Icons.remove_circle_outline;
     }
+  }
+
+  void _showBanConfirmationDialog(
+      BuildContext context, String workerId, bool isBanned) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isBanned ? 'Unban Worker' : 'Ban Worker'),
+        content: Text(isBanned
+            ? 'Are you sure you want to unban this worker?'
+            : 'Are you sure you want to ban this worker? They will not be able to access the app.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<WorkerDetailsCubit>().banWorker(workerId);
+              Navigator.pop(dialogContext);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: isBanned ? AppColors.success : AppColors.error,
+            ),
+            child: Text(isBanned ? 'Unban' : 'Ban'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, String kioskId,
+      String kioskName, String profileId) {
+    // We need workerId to delete. However, inside the list builder we don't have direct access to workerId
+    // unless we pass it or access it from state.
+    // Since we are inside _WorkerDetailsView which is a stateless widget, we can access the Cubit's state.
+    // But getting the state synchronously here might be cleaner if we pass workerId to _buildKiosksList.
+    // Let's use context.read to get the latest state which should satisfy us if it's loaded.
+
+    final state = context.read<WorkerDetailsCubit>().state;
+    String? workerId;
+    if (state is WorkerDetailsLoaded) {
+      workerId = state.worker.profile.id;
+    }
+
+    if (workerId == null) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove from Kiosk'),
+        content: Text(
+            'Are you sure you want to remove this worker from $kioskName?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context
+                  .read<WorkerDetailsCubit>()
+                  .deleteWorker(workerId!, kioskId, profileId);
+              Navigator.pop(dialogContext);
+            },
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
   }
 }

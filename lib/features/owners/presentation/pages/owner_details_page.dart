@@ -4,6 +4,9 @@ import 'package:dashboard_grow/features/owners/data/models/owner_details_model.d
 import 'package:dashboard_grow/features/owners/data/repositories/owners_repository_impl.dart';
 import 'package:dashboard_grow/features/owners/domain/usecases/get_owner_details_usecase.dart';
 import 'package:dashboard_grow/features/owners/presentation/cubit/owner_details_cubit.dart';
+import 'package:dashboard_grow/features/owners/domain/usecases/get_owner_graph_usecase.dart';
+import 'package:dashboard_grow/features/owners/presentation/cubit/owner_graph_cubit.dart';
+import 'package:dashboard_grow/features/owners/presentation/widgets/owner_graph_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -17,18 +20,28 @@ class OwnerDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => OwnerDetailsCubit(
-        GetOwnerDetailsUseCase(OwnersRepositoryImpl()),
-        PerformOwnerActionUseCase(OwnersRepositoryImpl()),
-      )..getOwnerDetails(ownerId),
-      child: const _OwnerDetailsView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => OwnerDetailsCubit(
+            GetOwnerDetailsUseCase(OwnersRepositoryImpl()),
+            PerformOwnerActionUseCase(OwnersRepositoryImpl()),
+          )..getOwnerDetails(ownerId),
+        ),
+        BlocProvider(
+          create: (context) => OwnerGraphCubit(
+            GetOwnerGraphUseCase(OwnersRepositoryImpl()),
+          ),
+        ),
+      ],
+      child: _OwnerDetailsView(ownerId: ownerId),
     );
   }
 }
 
 class _OwnerDetailsView extends StatelessWidget {
-  const _OwnerDetailsView();
+  final String ownerId;
+  const _OwnerDetailsView({required this.ownerId});
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +75,8 @@ class _OwnerDetailsView extends StatelessWidget {
                   _buildProfileHeader(context, state.owner.profile),
                   const SizedBox(height: 24),
                   _buildStatsCards(state.owner),
+                  const SizedBox(height: 24),
+                  OwnerGraphSection(ownerId: ownerId),
                   const SizedBox(height: 24),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,

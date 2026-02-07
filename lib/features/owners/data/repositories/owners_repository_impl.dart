@@ -47,4 +47,21 @@ class OwnersRepositoryImpl implements OwnersRepository {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  @override
+  Future<ApiResponse> getOwnerGraph({
+    required String id,
+    String resource = 'transactions_amount',
+    String filter = 'weekly',
+  }) async {
+    try {
+      return await _remoteDataSource.getOwnerGraph(
+        id: id,
+        resource: resource,
+        filter: filter,
+      );
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

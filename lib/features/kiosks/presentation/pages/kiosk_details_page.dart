@@ -6,8 +6,10 @@ import 'package:dashboard_grow/features/dashboard/data/models/kiosk_detail_model
 import '../../data/repositories/kiosks_repository_impl.dart';
 import '../../domain/usecases/get_kiosk_details_usecase.dart';
 import '../../domain/usecases/update_kiosk_usecase.dart';
+import '../../domain/usecases/get_kiosk_graph_usecase.dart';
+import '../cubit/kiosk_graph_cubit.dart';
+import '../widgets/kiosk_graph_section.dart';
 import '../../domain/usecases/change_kiosk_status_usecase.dart';
-import '../../domain/usecases/adjust_kiosk_dues_usecase.dart';
 import '../../domain/usecases/adjust_kiosk_dues_usecase.dart';
 import '../cubit/kiosk_details_cubit.dart';
 import '../cubit/kiosk_details_state.dart';
@@ -20,16 +22,25 @@ class KioskDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final repository = KiosksRepositoryImpl();
-        return KioskDetailsCubit(
-          GetKioskDetailsUseCase(repository),
-          UpdateKioskUseCase(repository),
-          ChangeKioskStatusUseCase(repository),
-          AdjustKioskDuesUseCase(repository),
-        )..getKioskDetails(kioskId);
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final repository = KiosksRepositoryImpl();
+            return KioskDetailsCubit(
+              GetKioskDetailsUseCase(repository),
+              UpdateKioskUseCase(repository),
+              ChangeKioskStatusUseCase(repository),
+              AdjustKioskDuesUseCase(repository),
+            )..getKioskDetails(kioskId);
+          },
+        ),
+        BlocProvider(
+          create: (context) => KioskGraphCubit(
+            GetKioskGraphUseCase(KiosksRepositoryImpl()),
+          ),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: const Color(0xffF8FAFC),
         appBar: AppBar(
@@ -95,6 +106,8 @@ class _KioskDetailsView extends StatelessWidget {
                             context, state.kiosk.dues, state.kiosk.profile.id)),
                   ],
                 ),
+                const SizedBox(height: 24),
+                KioskGraphSection(kioskId: kioskId),
                 const SizedBox(height: 24),
                 Text('Goals', style: AppTextStyle.heading2),
                 const SizedBox(height: 16),
@@ -672,145 +685,5 @@ void _showAdjustDuesDialog(BuildContext context, String kioskId) {
         ),
       ],
     ),
-  );
-}
-
-Widget _buildStatusBadge(bool isActive) {
-  final color = isActive ? AppColors.success : AppColors.error;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Text(
-      isActive ? 'ACTIVE' : 'SUSPENDED',
-      style: AppTextStyle.caption
-          .copyWith(color: color, fontWeight: FontWeight.bold),
-    ),
-  );
-}
-
-Widget _buildOwnerCard(KioskOwnerDetail owner) {
-  return Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.divider),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Owner Details', style: AppTextStyle.heading3),
-        const SizedBox(height: 16),
-        _buildDetailRow('Name', owner.fullName),
-        _buildDetailRow('Phone', owner.phone),
-      ],
-    ),
-  );
-}
-
-Widget _buildDuesCard(BuildContext context, KioskDues dues, String kioskId) {
-  return Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.divider),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Financials', style: AppTextStyle.heading3),
-          // Adjust Button
-          IconButton(
-            icon: const Icon(Icons.edit_note, color: AppColors.primary),
-            tooltip: 'Adjust Dues',
-            onPressed: () => _showAdjustDuesDialog(context, kioskId),
-          ),
-        ]),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('${dues.balance.toStringAsFixed(0)} EGP',
-                style:
-                    AppTextStyle.heading3.copyWith(color: AppColors.primary)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildDetailRow('Overdue Count', dues.overdueCount.toString()),
-        _buildDetailRow(
-            'Overdue Amount', '${dues.overdueAmount.toStringAsFixed(0)} EGP',
-            isError: dues.overdueAmount > 0),
-      ],
-    ),
-  );
-}
-
-Widget _buildDetailRow(String label, String value, {bool isError = false}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style:
-                AppTextStyle.bodySmall.copyWith(color: AppColors.neutral500)),
-        Text(value,
-            style: AppTextStyle.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isError ? AppColors.error : AppColors.textPrimary)),
-      ],
-    ),
-  );
-}
-
-Widget _buildGoalsList(List<KioskGoal> goals) {
-  if (goals.isEmpty) {
-    return const Center(child: Text("No active goals."));
-  }
-  return Column(
-    children: goals
-        .map((goal) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(goal.title,
-                          style: AppTextStyle.bodyMedium
-                              .copyWith(fontWeight: FontWeight.w600)),
-                      if (goal.deadline != null)
-                        Text(
-                            'Deadline: ${goal.deadline.toString().split(' ')[0]}',
-                            style: AppTextStyle.caption
-                                .copyWith(color: AppColors.neutral500)),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('${goal.target}',
-                          style: AppTextStyle.heading3
-                              .copyWith(color: AppColors.primary)),
-                      Text(goal.status,
-                          style: AppTextStyle.caption
-                              .copyWith(fontWeight: FontWeight.bold)),
-                    ],
-                  )
-                ],
-              ),
-            ))
-        .toList(),
   );
 }

@@ -8,4 +8,10 @@ abstract class KiosksRepository {
       String id, bool isActive, String? reason);
   Future<ApiResponse> adjustKioskDues(String id, double amount, String reason);
   Future<ApiResponse> getKioskDuesDetails(String id);
+
+  Future<ApiResponse> getKioskGraph({
+    required String id,
+    String resource = 'commission_earned',
+    String filter = '7d',
+  });
 }

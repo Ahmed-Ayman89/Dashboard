@@ -24,6 +24,8 @@ class WorkersCubit extends Cubit<WorkersState> {
         search: _searchQuery,
       );
 
+      if (isClosed) return;
+
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;
         // Handle data wrapper if present
@@ -49,6 +51,7 @@ class WorkersCubit extends Cubit<WorkersState> {
         emit(WorkersFailure(response.message ?? 'Failed to load workers'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(WorkersFailure(e.toString()));
     }
   }

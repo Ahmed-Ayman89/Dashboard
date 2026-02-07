@@ -42,10 +42,30 @@ class OwnersRemoteDataSource {
   }) async {
     try {
       final response = await APIHelper().postRequest(
+        isFormData: false,
         endPoint: '${EndPoints.owners}/$id/action',
         data: {
           'action': action,
           'reason': reason,
+        },
+      );
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  Future<ApiResponse> getOwnerGraph({
+    required String id,
+    String resource = 'transactions_amount',
+    String filter = 'weekly',
+  }) async {
+    try {
+      final response = await APIHelper().getRequest(
+        endPoint: '${EndPoints.owners}/$id/graph',
+        queryParameters: {
+          'resource': resource,
+          'filter': filter,
         },
       );
       return response;

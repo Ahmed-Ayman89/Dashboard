@@ -45,6 +45,8 @@ class CustomerBalanceCubit extends Cubit<CustomerBalanceState> {
         reason: reason,
       );
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         emit(CustomerBalanceSuccess());
       } else {
@@ -52,6 +54,7 @@ class CustomerBalanceCubit extends Cubit<CustomerBalanceState> {
             response.message ?? 'Failed to adjust balance'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(CustomerBalanceFailure(e.toString()));
     }
   }

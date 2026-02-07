@@ -16,6 +16,7 @@ class OwnerDetailsCubit extends Cubit<OwnerDetailsState> {
   Future<void> getOwnerDetails(String id) async {
     emit(OwnerDetailsLoading());
     final response = await getOwnerDetailsUseCase(id);
+    if (isClosed) return;
 
     if (response.error == null) {
       final ownerDetails = OwnerDetailsModel.fromJson(response.data['data']);
@@ -36,6 +37,8 @@ class OwnerDetailsCubit extends Cubit<OwnerDetailsState> {
       action: action,
       reason: reason,
     );
+
+    if (isClosed) return;
 
     if (response.error == null) {
       await getOwnerDetails(id);

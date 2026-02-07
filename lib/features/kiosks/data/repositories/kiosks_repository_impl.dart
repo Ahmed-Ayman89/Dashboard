@@ -60,4 +60,21 @@ class KiosksRepositoryImpl implements KiosksRepository {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  @override
+  Future<ApiResponse> getKioskGraph({
+    required String id,
+    String resource = 'commission_earned',
+    String filter = '7d',
+  }) async {
+    try {
+      return await _remoteDataSource.getKioskGraph(
+        id: id,
+        resource: resource,
+        filter: filter,
+      );
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

@@ -45,6 +45,8 @@ class OwnersCubit extends Cubit<OwnersState> {
       search: search,
     );
 
+    if (isClosed) return;
+
     if (response.error == null) {
       final data = response.data['data'];
       final List<dynamic> ownersJson = data['owners'];

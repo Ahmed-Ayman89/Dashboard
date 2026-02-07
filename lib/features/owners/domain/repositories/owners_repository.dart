@@ -14,4 +14,10 @@ abstract class OwnersRepository {
     required String action,
     required String reason,
   });
+
+  Future<ApiResponse> getOwnerGraph({
+    required String id,
+    String resource = 'transactions_amount',
+    String filter = 'weekly',
+  });
 }

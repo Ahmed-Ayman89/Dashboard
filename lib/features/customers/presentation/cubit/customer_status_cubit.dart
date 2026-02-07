@@ -45,6 +45,8 @@ class CustomerStatusCubit extends Cubit<CustomerStatusState> {
         note: note,
       );
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         emit(CustomerStatusSuccess());
       } else {
@@ -52,6 +54,7 @@ class CustomerStatusCubit extends Cubit<CustomerStatusState> {
             response.message ?? 'Failed to update status'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(CustomerStatusFailure(e.toString()));
     }
   }

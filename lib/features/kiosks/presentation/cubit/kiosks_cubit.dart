@@ -13,6 +13,8 @@ class KiosksCubit extends Cubit<KiosksState> {
     try {
       final response = await _getKiosksUseCase(page: page, limit: limit);
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         final data = response.data['data'];
         final List<dynamic> kiosksJson = data['kiosks'];
@@ -33,6 +35,7 @@ class KiosksCubit extends Cubit<KiosksState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KiosksFailure(e.toString()));
     }
   }

@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../../core/network/api_response.dart';
 import '../../data/models/kiosk_dues_details_model.dart';
 import '../../domain/usecases/get_kiosk_dues_details_usecase.dart';
 
@@ -16,6 +15,7 @@ class KioskDuesDetailsCubit extends Cubit<KioskDuesDetailsState> {
     emit(KioskDuesDetailsLoading());
     try {
       final response = await _getKioskDuesDetailsUseCase(id);
+      if (isClosed) return;
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;
         // Check if responseData has a 'data' field (standard API wrapper)
@@ -31,6 +31,7 @@ class KioskDuesDetailsCubit extends Cubit<KioskDuesDetailsState> {
             response.message ?? 'Failed to load dues details'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KioskDuesDetailsFailure(e.toString()));
     }
   }

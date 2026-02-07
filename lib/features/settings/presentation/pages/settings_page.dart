@@ -1,24 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:dashboard_grow/core/helper/app_text_style.dart';
-import 'package:dashboard_grow/core/theme/app_colors.dart';
-
-import 'package:dashboard_grow/core/widgets/custom_snackbar.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../auth/data/repositories/auth_repository_impl.dart';
-import '../../../auth/domain/usecases/set_password_usecase.dart';
-import '../../../auth/presentation/cubit/set_password_cubit.dart';
-import '../../../auth/presentation/cubit/set_password_state.dart';
+import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/network/api_helper.dart';
+import 'package:dashboard_grow/core/theme/app_colors.dart';
+import 'package:dashboard_grow/features/settings/data/datasources/settings_remote_data_source.dart';
+import 'package:dashboard_grow/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:dashboard_grow/features/settings/domain/entities/settings.dart';
+import 'package:dashboard_grow/features/settings/domain/usecases/get_settings_usecase.dart';
+import 'package:dashboard_grow/features/settings/domain/usecases/update_settings_usecase.dart';
+import 'package:dashboard_grow/features/settings/presentation/cubit/settings_cubit.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  Widget build(BuildContext context) {
+    final apiHelper = APIHelper();
+    final remoteDataSource = SettingsRemoteDataSourceImpl(apiHelper: apiHelper);
+    final repository =
+        SettingsRepositoryImpl(remoteDataSource: remoteDataSource);
+
+    return BlocProvider(
+      create: (context) => SettingsCubit(
+        getSettingsUseCase: GetSettingsUseCase(repository: repository),
+        updateSettingsUseCase: UpdateSettingsUseCase(repository: repository),
+      )..getSettings(),
+      child: Scaffold(
+        body: BlocConsumer<SettingsCubit, SettingsState>(
+          listener: (context, state) {
+            if (state is SettingsActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            } else if (state is SettingsError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is SettingsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is SettingsLoaded) {
+              return _SettingsContent(settings: state.settings);
+            } else if (state is SettingsActionLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+  }
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsContent extends StatelessWidget {
+  final Settings settings;
+
+  const _SettingsContent({required this.settings});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -28,102 +75,62 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           Text('Platform Settings', style: AppTextStyle.heading1),
           const SizedBox(height: 32),
-          _buildAccountSettings(),
-          const SizedBox(height: 32),
-          _buildGlobalSettings(),
-          const SizedBox(height: 32),
-          _buildFinancialSettings(),
-          const SizedBox(height: 32),
-          _buildSystemRules(),
+          _buildSection('Global Settings', [
+            _buildSettingItem(context, 'Daily Kiosk Limit',
+                settings.global.dailyKioskLimit.toString(), 'daily_kiosk_limit',
+                isNumber: true),
+            _buildSettingItem(
+                context,
+                'Same Customer Limit',
+                settings.global.sameCustomerLimit.toString(),
+                'same_customer_limit',
+                isNumber: true),
+            _buildSettingItem(
+                context,
+                'Min Redemption Amount',
+                settings.global.minRedemptionAmount.toString(),
+                'min_redemption_amount',
+                isNumber: true),
+            _buildSettingItem(
+                context,
+                'Min Sending Amount',
+                settings.global.minSendingAmount.toString(),
+                'min_sending_amount',
+                isNumber: true),
+            _buildSettingItem(context, 'Goal Setup Limit',
+                settings.global.goalSetupLimit.toString(), 'goal_setup_limit',
+                isNumber: true),
+          ]),
+          const SizedBox(height: 24),
+          _buildSection('Financial Settings', [
+            _buildSettingItem(
+                context,
+                'Commission Amount',
+                settings.financial.commissionAmount.toString(),
+                'commission_amount',
+                isNumber: true),
+            _buildSettingItem(context, 'Commission Type',
+                settings.financial.commissionType, 'commission_type'),
+          ]),
+          const SizedBox(height: 24),
+          _buildSection('Rules & Policies', [
+            _buildSettingItem(context, 'KYC Requirements',
+                settings.rules.kycRequirements, 'kyc_requirements'),
+            _buildSettingItem(context, 'Worker Restrictions',
+                settings.rules.workerRestrictions, 'worker_restrictions'),
+            _buildSettingItem(context, 'Account Freeze Rules',
+                settings.rules.accountFreezeRules, 'account_freeze_rules'),
+            _buildSettingItem(context, 'Terms & Conditions',
+                settings.rules.termsAndConditions, 'terms_and_conditions'),
+            _buildSettingItem(context, 'Privacy Policy',
+                settings.rules.privacyPolicy, 'privacy_policy'),
+          ]),
         ],
       ),
     );
   }
 
-  Widget _buildAccountSettings() {
-    return _buildSettingsSection(
-      title: 'Account Settings',
-      icon: Icons.person_rounded,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Change Password',
-                style: AppTextStyle.bodyRegular,
-              ),
-              ElevatedButton(
-                onPressed: () => _showChangePasswordDialog(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandPrimary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Change'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showChangePasswordDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => BlocProvider(
-        create: (context) => SetPasswordCubit(
-          SetPasswordUseCase(AuthRepositoryImpl()),
-        ),
-        child: const _ChangePasswordDialog(),
-      ),
-    );
-  }
-
-  Widget _buildGlobalSettings() {
-    return _buildSettingsSection(
-      title: 'Global App Settings',
-      icon: Icons.settings_applications_rounded,
-      children: [
-        _buildSettingTile('Daily Kiosk Transaction Limit', '500 TX'),
-        _buildSettingTile('Same Customer Limit (Per Day)', '3 TX'),
-        _buildSettingTile('Minimum Redemption Amount', '50 EGP'),
-        _buildSettingTile('Max. Kiosks per Owner', '4 Kiosks'),
-        _buildSettingTile('Minimum Sending Amount', '10 Points'),
-        _buildSettingTile('Maximum Sending Amount', '1000 Points'),
-      ],
-    );
-  }
-
-  Widget _buildFinancialSettings() {
-    return _buildSettingsSection(
-      title: 'Financial Settings',
-      icon: Icons.monetization_on_rounded,
-      children: [
-        _buildSettingTile('Commission Amount', '5 Points (Fixed)'),
-      ],
-    );
-  }
-
-  Widget _buildSystemRules() {
-    return _buildSettingsSection(
-      title: 'System Rules & Legal',
-      icon: Icons.gavel_rounded,
-      children: [
-        _buildSettingTile('Terms & Conditions Link', 'https://grow.app/terms'),
-        _buildSettingTile('Privacy Policy Link', 'https://grow.app/privacy'),
-      ],
-    );
-  }
-
-  Widget _buildSettingsSection(
-      {required String title,
-      required IconData icon,
-      required List<Widget> children}) {
+  Widget _buildSection(String title, List<Widget> children) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -141,228 +148,195 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: AppColors.brandPrimary),
-              const SizedBox(width: 12),
-              Text(title, style: AppTextStyle.heading3),
-            ],
-          ),
+          Text(title, style: AppTextStyle.heading2),
           const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
           ...children,
         ],
       ),
     );
   }
 
-  Widget _buildSettingTile(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: AppTextStyle.bodyRegular,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Row(
-            children: [
-              Text(value,
-                  style: AppTextStyle.bodyRegular.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.neutral700)),
-              const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.edit_rounded,
-                    size: 20, color: AppColors.brandPrimary),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+  Widget _buildSettingItem(
+      BuildContext context, String label, String value, String key,
+      {bool isNumber = false}) {
+    return InkWell(
+      onTap: () => _showEditDialog(context, label, value, key, isNumber),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: AppTextStyle.bodyMedium
+                    .copyWith(color: AppColors.neutral500)),
+            const SizedBox(width: 16),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      style: AppTextStyle.bodyMedium
+                          .copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.edit, size: 16, color: AppColors.neutral500),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-class _ChangePasswordDialog extends StatefulWidget {
-  const _ChangePasswordDialog();
+  void _showEditDialog(BuildContext context, String label, String currentValue,
+      String key, bool isNumber) {
+    final controller = TextEditingController(text: currentValue);
+    final descriptionController = TextEditingController();
 
-  @override
-  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
-}
-
-class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
-        'Change Password',
-        style: AppTextStyle.heading3,
-      ),
-      content: SizedBox(
-        width: 400.w,
-        child: BlocConsumer<SetPasswordCubit, SetPasswordState>(
-          listener: (context, state) {
-            if (state is SetPasswordSuccess) {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                CustomSnackBar(
-                  message: state.message,
-                  type: SnackBarType.success,
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.white,
+        surfaceTintColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Edit $label', style: AppTextStyle.heading3),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Update the value and provide a description for this change.',
+              style: AppTextStyle.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: controller,
+              style: AppTextStyle.bodyRegular,
+              decoration: InputDecoration(
+                labelText: 'New Value',
+                labelStyle: AppTextStyle.bodyMedium,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
                 ),
-              );
-            } else if (state is SetPasswordFailure) {
-              // Close dialog first if you want, or keep it open to show error
-              // Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                CustomSnackBar(
-                  message: state.message,
-                  type: SnackBarType.error,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
                 ),
-              );
-            }
-          },
-          builder: (context, state) {
-            return Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 16.h),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      hintText: 'Enter new password',
-                      prefixIcon: const Icon(Icons.lock_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.neutral300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.neutral300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.brandPrimary),
-                      ),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      hintText: 'Re-enter new password',
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.neutral300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.neutral300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.brandPrimary),
-                      ),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 8.h),
-                ],
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.brandPrimary, width: 2),
+                ),
+                hintText: 'Enter new $label',
+                hintStyle: AppTextStyle.bodySmall,
+                filled: true,
+                fillColor: AppColors.neutral100,
               ),
-            );
-          },
+              keyboardType: isNumber
+                  ? const TextInputType.numberWithOptions(decimal: true)
+                  : TextInputType.text,
+              inputFormatters: isNumber
+                  ? [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'))
+                    ]
+                  : [],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
+              style: AppTextStyle.bodyRegular,
+              decoration: InputDecoration(
+                labelText: 'Description / Reason',
+                labelStyle: AppTextStyle.bodyMedium,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.brandPrimary, width: 2),
+                ),
+                hintText: 'Why are you changing this?',
+                hintStyle: AppTextStyle.bodySmall,
+                filled: true,
+                fillColor: AppColors.neutral100,
+              ),
+              maxLines: 3,
+            ),
+          ],
         ),
-      ),
-      actionsPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.neutral600,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.neutral600,
+              textStyle:
+                  AppTextStyle.button.copyWith(color: AppColors.neutral600),
+            ),
+            child: const Text('Cancel'),
           ),
-          child: const Text('Cancel'),
-        ),
-        BlocBuilder<SetPasswordCubit, SetPasswordState>(
-          builder: (context, state) {
-            return ElevatedButton(
-              onPressed: state is SetPasswordLoading
-                  ? null
-                  : () {
-                      if (_formKey.currentState!.validate()) {
-                        context
-                            .read<SetPasswordCubit>()
-                            .setPassword(_passwordController.text);
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brandPrimary,
-                foregroundColor: AppColors.white,
-                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
+          FilledButton(
+            onPressed: () {
+              final newValue = controller.text;
+              final description = descriptionController.text;
+
+              if (newValue.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Value cannot be empty')),
+                );
+                return;
+              }
+
+              if (description.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Description is required')),
+                );
+                return;
+              }
+
+              dynamic valueToSend = newValue;
+              if (isNumber) {
+                valueToSend = num.tryParse(newValue);
+                if (valueToSend == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid number format')),
+                  );
+                  return;
+                }
+              }
+
+              context
+                  .read<SettingsCubit>()
+                  .updateSetting(key, valueToSend, description);
+              Navigator.pop(dialogContext);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.brandPrimary,
+              foregroundColor: AppColors.white,
+              textStyle: AppTextStyle.button,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: state is SetPasswordLoading
-                  ? SizedBox(
-                      width: 20.w,
-                      height: 20.h,
-                      child: const CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.white),
-                    )
-                  : const Text('Save Password'),
-            );
-          },
-        ),
-      ],
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Update'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -39,6 +39,8 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       limit: _limit,
     );
 
+    if (isClosed) return;
+
     if (response.error == null) {
       final List<dynamic> data = response.data['data']['transactions'];
       final int total = response.data['data']['total'] ?? 0;

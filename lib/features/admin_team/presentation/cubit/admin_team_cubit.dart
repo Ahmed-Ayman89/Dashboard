@@ -15,6 +15,7 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
     emit(AdminTeamLoading());
     try {
       final response = await _getAdminsUseCase();
+      if (isClosed) return;
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;
         // Handle data wrapper if present
@@ -32,6 +33,7 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
         emit(AdminTeamFailure(response.message ?? 'Failed to load admins'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(AdminTeamFailure(e.toString()));
     }
   }
@@ -45,6 +47,7 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
     emit(AdminTeamActionLoading());
     try {
       final response = await _createAdminUseCase(request);
+      if (isClosed) return;
       if (response.isSuccess) {
         emit(const AdminTeamActionSuccess('Admin created successfully'));
         getAdmins(); // Refresh list to show new admin
@@ -54,6 +57,7 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
         // For now, failure will likely trigger a Snackbar.
       }
     } catch (e) {
+      if (isClosed) return;
       emit(AdminTeamFailure(e.toString()));
     }
   }

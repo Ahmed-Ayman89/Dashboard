@@ -13,6 +13,8 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
     try {
       final response = await _getAuditLogsUseCase(page: page, limit: limit);
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         final data = response.data['data'];
         final List<dynamic> logsJson = data['logs'];
@@ -33,6 +35,7 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(AuditLogsFailure(e.toString()));
     }
   }

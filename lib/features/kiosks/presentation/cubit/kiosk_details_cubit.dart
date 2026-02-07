@@ -24,6 +24,8 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
     try {
       final response = await _getKioskDetailsUseCase(id);
 
+      if (isClosed) return;
+
       if (response.isSuccess) {
         final data = response.data['data'];
         final kiosk = KioskDetailModel.fromJson(data);
@@ -34,6 +36,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KioskDetailsFailure(e.toString()));
     }
   }
@@ -43,6 +46,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
     // For simplicity, we just call API and refresh details.
     try {
       final response = await _updateKioskUseCase(id, data);
+      if (isClosed) return;
       if (response.isSuccess) {
         getKioskDetails(id); // Refresh data
       } else {
@@ -51,6 +55,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KioskDetailsFailure(e.toString()));
     }
   }
@@ -58,6 +63,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
   Future<void> changeStatus(String id, bool isActive, String? reason) async {
     try {
       final response = await _changeKioskStatusUseCase(id, isActive, reason);
+      if (isClosed) return;
       if (response.isSuccess) {
         getKioskDetails(id); // Refresh data
       } else {
@@ -65,6 +71,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KioskDetailsFailure(e.toString()));
     }
   }
@@ -72,6 +79,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
   Future<void> adjustDues(String id, double amount, String reason) async {
     try {
       final response = await _adjustKioskDuesUseCase(id, amount, reason);
+      if (isClosed) return;
       if (response.isSuccess) {
         getKioskDetails(id); // Refresh data
       } else {
@@ -79,6 +87,7 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
             error: response.error));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(KioskDetailsFailure(e.toString()));
     }
   }

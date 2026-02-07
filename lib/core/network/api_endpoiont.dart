@@ -29,4 +29,7 @@ abstract class EndPoints {
   static const String transactions = 'admin/transactions';
   static const String redemptionsPending = 'admin/redemptions/pending';
   static const String redemptionsProcess = 'admin/redemptions/process';
+  static const String dues = 'admin/dues';
+  static const String collectDue = 'admin/dues/collect';
+  static const String settings = 'admin/settings';
 }

@@ -63,6 +63,8 @@ class CustomersCubit extends Cubit<CustomersState> {
         search: _searchQuery,
       );
 
+      if (isClosed) return;
+
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;
         // Handle data wrapper if present
@@ -89,6 +91,7 @@ class CustomersCubit extends Cubit<CustomersState> {
         emit(CustomersFailure(response.message ?? 'Failed to load customers'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(CustomersFailure(e.toString()));
     }
   }

@@ -64,6 +64,7 @@ class WorkerProfile {
 
 class WorkerKioskDetail {
   final String kioskId;
+  final String profileId;
   final String kioskName;
   final String ownerName;
   final String status;
@@ -71,6 +72,7 @@ class WorkerKioskDetail {
 
   WorkerKioskDetail({
     required this.kioskId,
+    required this.profileId,
     required this.kioskName,
     required this.ownerName,
     required this.status,
@@ -80,6 +82,7 @@ class WorkerKioskDetail {
   factory WorkerKioskDetail.fromJson(Map<String, dynamic> json) {
     return WorkerKioskDetail(
       kioskId: json['kiosk_id'] ?? '',
+      profileId: json['profile_id'] ?? '',
       kioskName: json['kiosk_name'] ?? '',
       ownerName: json['owner_name'] ?? '',
       status: json['status'] ?? '',

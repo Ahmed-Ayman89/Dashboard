@@ -11,6 +11,7 @@ class SetPasswordCubit extends Cubit<SetPasswordState> {
     emit(SetPasswordLoading());
     try {
       final response = await _useCase(password);
+      if (isClosed) return;
       if (response.isSuccess) {
         emit(SetPasswordSuccess(
             response.message ?? 'Password set successfully'));
@@ -18,6 +19,7 @@ class SetPasswordCubit extends Cubit<SetPasswordState> {
         emit(SetPasswordFailure(response.message ?? 'Failed to set password'));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(SetPasswordFailure(e.toString()));
     }
   }

@@ -86,4 +86,23 @@ class KiosksRemoteDataSource {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  Future<ApiResponse> getKioskGraph({
+    required String id,
+    String resource = 'commission_earned',
+    String filter = '7d',
+  }) async {
+    try {
+      final response = await APIHelper().getRequest(
+        endPoint: '${EndPoints.adminKiosks}/$id/graph',
+        queryParameters: {
+          'resource': resource,
+          'filter': filter,
+        },
+      );
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }
