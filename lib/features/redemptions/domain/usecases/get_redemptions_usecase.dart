@@ -6,7 +6,7 @@ class GetRedemptionsUseCase {
 
   GetRedemptionsUseCase(this.repository);
 
-  Future<ApiResponse> call() async {
-    return await repository.getPendingRedemptions();
+  Future<ApiResponse> call({String? status}) {
+    return repository.getRedemptions(status: status);
   }
 }

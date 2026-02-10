@@ -23,4 +23,11 @@ class AuthRemoteDataSource {
       isFormData: false,
     );
   }
+
+  Future<ApiResponse> verifyToken() async {
+    return await _apiHelper.getRequest(
+      endPoint: EndPoints.verify,
+      isProtected: true,
+    );
+  }
 }

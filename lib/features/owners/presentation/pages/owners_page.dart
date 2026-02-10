@@ -133,56 +133,136 @@ class _OwnersViewState extends State<_OwnersView> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Owners Management', style: AppTextStyle.heading1),
-              const SizedBox(height: 8),
-              Text(
-                'Manage and verify kiosk owners',
-                style: AppTextStyle.bodyMedium,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Owners Management', style: AppTextStyle.heading1),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Manage and verify kiosk owners',
+                    style: AppTextStyle.bodyMedium,
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        SizedBox(
-          width: 300,
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search owners...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: AppColors.primary, width: 1.5),
-              ),
-              filled: true,
-              fillColor: AppColors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             ),
-            onSubmitted: (value) {
-              context
-                  .read<OwnersCubit>()
-                  .getOwners(refresh: true, search: value);
-            },
-          ),
+            const SizedBox(width: 16),
+            SizedBox(
+              width: 300,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search owners...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                ),
+                onSubmitted: (value) {
+                  context
+                      .read<OwnersCubit>()
+                      .getOwners(refresh: true, search: value);
+                },
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 24),
+        _buildFilterChips(context),
       ],
+    );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildFilterChip(context, 'All', null),
+          const SizedBox(width: 12),
+          _buildFilterChip(context, 'Pending', AppColors.warning),
+          const SizedBox(width: 12),
+          _buildFilterChip(
+              context,
+              'Active',
+              AppColors
+                  .success), // Mapped to APPROVED in logic usually, handled by backend
+          const SizedBox(width: 12),
+          _buildFilterChip(context, 'Suspended', AppColors.error),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(BuildContext context, String label, Color? color) {
+    // We need to know current selected status.
+    // Ideally use BlocBuilder but to keep it simple we just trigger refresh.
+    // Or we can rebuild this part based on state?
+    // Let's assume text style change for now or simple click.
+    // Better: wrap with BlocBuilder to highlight selected.
+    return BlocBuilder<OwnersCubit, OwnersState>(
+      builder: (context, state) {
+        // This is a bit hacky to get current status since it's private in Cubit
+        // But we can just use the label on tap.
+        // Actually we can't easily know which is selected without exposing it in state.
+        // For now, simple chips that trigger load.
+        return InkWell(
+          onTap: () {
+            // Map 'Active' to 'APPROVED' if needed, or backend handles it.
+            String status = label;
+            if (label == 'Active') status = 'APPROVED';
+
+            context
+                .read<OwnersCubit>()
+                .getOwners(refresh: true, status: status);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.divider),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]),
+            child: Row(
+              children: [
+                if (color != null) ...[
+                  Icon(Icons.circle, size: 8, color: color),
+                  const SizedBox(width: 8),
+                ],
+                Text(label,
+                    style: AppTextStyle.bodySmall
+                        .copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -190,6 +270,7 @@ class _OwnersViewState extends State<_OwnersView> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
+        showCheckboxColumn: false,
         headingRowColor:
             WidgetStateProperty.all(AppColors.neutral100.withOpacity(0.5)),
         dataRowColor: WidgetStateProperty.resolveWith<Color?>((states) {
@@ -214,13 +295,17 @@ class _OwnersViewState extends State<_OwnersView> {
               label: Text('Joined Date',
                   style: AppTextStyle.bodySmall
                       .copyWith(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Actions',
-                  style: AppTextStyle.bodySmall
-                      .copyWith(fontWeight: FontWeight.bold))),
         ],
         rows: owners.map((owner) {
           return DataRow(
+            onSelectChanged: (_) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OwnerDetailsPage(ownerId: owner.id),
+                ),
+              );
+            },
             cells: [
               DataCell(
                 Row(
@@ -256,22 +341,6 @@ class _OwnersViewState extends State<_OwnersView> {
               DataCell(_buildStatusBadge(owner.status)),
               DataCell(Text(DateFormat('MMM d, yyyy').format(owner.createdAt),
                   style: AppTextStyle.bodySmall)),
-              DataCell(
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            OwnerDetailsPage(ownerId: owner.id),
-                      ),
-                    );
-                  },
-                  child: Text('View Details',
-                      style: AppTextStyle.bodySmall
-                          .copyWith(color: AppColors.primary)),
-                ),
-              ),
             ],
           );
         }).toList(),

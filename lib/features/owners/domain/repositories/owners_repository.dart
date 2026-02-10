@@ -5,6 +5,7 @@ abstract class OwnersRepository {
     int page = 1,
     int limit = 10,
     String search = '',
+    String? status,
   });
 
   Future<ApiResponse> getOwnerDetails(String id);

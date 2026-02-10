@@ -10,12 +10,14 @@ class OwnersRepositoryImpl implements OwnersRepository {
     int page = 1,
     int limit = 10,
     String search = '',
+    String? status,
   }) async {
     try {
       return await _remoteDataSource.getOwners(
         page: page,
         limit: limit,
         search: search,
+        status: status,
       );
     } catch (e) {
       return ApiResponse.error(message: e.toString());

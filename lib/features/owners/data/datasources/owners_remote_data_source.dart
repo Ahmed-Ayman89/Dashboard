@@ -7,16 +7,22 @@ class OwnersRemoteDataSource {
     int page = 1,
     int limit = 10,
     String search = '',
+    String? status,
   }) async {
     try {
+      final Map<String, dynamic> queryParameters = {
+        'page': page,
+        'limit': limit,
+        'search': search,
+      };
+
+      if (status != null && status.isNotEmpty && status != 'All') {
+        queryParameters['status'] = status.toUpperCase();
+      }
+
       final response = await APIHelper().getRequest(
-        endPoint: EndPoints
-            .owners, // Assuming this endpoint exists in APIHelper/EndPoints or needs to be added
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-          'search': search,
-        },
+        endPoint: EndPoints.owners,
+        queryParameters: queryParameters,
       );
       return response;
     } catch (e) {

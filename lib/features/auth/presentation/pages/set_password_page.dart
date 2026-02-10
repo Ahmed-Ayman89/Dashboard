@@ -1,57 +1,53 @@
-import 'package:dashboard_grow/features/auth/presentation/pages/set_password_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../core/helper/app_text_style.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_snackbar.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../data/repositories/auth_repository_impl.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/verify_token_usecase.dart';
-import '../cubit/login_cubit.dart';
-import '../cubit/login_state.dart';
+import '../../domain/usecases/set_password_usecase.dart';
+import '../cubit/set_password_cubit.dart';
+import '../cubit/set_password_state.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class SetPasswordPage extends StatelessWidget {
+  const SetPasswordPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginCubit(
-        LoginUseCase(AuthRepositoryImpl()),
-        VerifyTokenUseCase(AuthRepositoryImpl()),
+      create: (context) => SetPasswordCubit(
+        SetPasswordUseCase(AuthRepositoryImpl()),
       ),
-      child: const _LoginForm(),
+      child: const _SetPasswordForm(),
     );
   }
 }
 
-class _LoginForm extends StatefulWidget {
-  const _LoginForm();
+class _SetPasswordForm extends StatefulWidget {
+  const _SetPasswordForm();
 
   @override
-  State<_LoginForm> createState() => _LoginFormState();
+  State<_SetPasswordForm> createState() => _SetPasswordFormState();
 }
 
-class _LoginFormState extends State<_LoginForm> {
-  final _phoneController = TextEditingController();
+class _SetPasswordFormState extends State<_SetPasswordForm> {
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
-    _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _onLoginPressed(BuildContext context) {
+  void _onSubmit(BuildContext context) {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<LoginCubit>().login(
-            _phoneController.text,
+      context.read<SetPasswordCubit>().setPassword(
             _passwordController.text,
           );
     }
@@ -61,28 +57,29 @@ class _LoginFormState extends State<_LoginForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BlocConsumer<LoginCubit, LoginState>(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: BlocConsumer<SetPasswordCubit, SetPasswordState>(
         listener: (context, state) {
-          if (state is LoginSuccess) {
+          if (state is SetPasswordSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               CustomSnackBar(
-                message: 'Login Successful',
+                message: 'Password updated successfully',
                 type: SnackBarType.success,
               ),
             );
-            if (state.mustChangePassword) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const SetPasswordPage()),
-              );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const DashboardPage()),
-              );
-            }
-          } else if (state is LoginFailure) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardPage()),
+              (route) => false,
+            );
+          } else if (state is SetPasswordFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               CustomSnackBar(
                 message: state.message,
@@ -92,7 +89,7 @@ class _LoginFormState extends State<_LoginForm> {
           }
         },
         builder: (context, state) {
-          final isLoading = state is LoginLoading;
+          final isLoading = state is SetPasswordLoading;
 
           return SafeArea(
             child: SingleChildScrollView(
@@ -102,59 +99,27 @@ class _LoginFormState extends State<_LoginForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 48.h),
-                    Center(
-                      // You can add Logo here
-                      child: Text(
-                        'Welcome Back',
-                        style: AppTextStyle.heading1,
-                      ),
+                    Text(
+                      'Set New Password',
+                      style: AppTextStyle.heading1,
                     ),
                     SizedBox(height: 8.h),
-                    Center(
-                      child: Text(
-                        'Sign in to continue',
-                        style: AppTextStyle.bodyRegular.copyWith(
-                          color: AppColors.neutral500,
-                        ),
+                    Text(
+                      'Please create a new password for your account.',
+                      style: AppTextStyle.bodyRegular.copyWith(
+                        color: AppColors.neutral500,
                       ),
                     ),
                     SizedBox(height: 48.h),
-
-                    // Phone Field
-                    Text('Phone Number', style: AppTextStyle.bodyRegular),
-                    SizedBox(height: 8.h),
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: 'Enter your phone number',
-                        hintStyle: TextStyle(color: AppColors.neutral400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        contentPadding: EdgeInsets.all(16.w),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter phone number';
-                        }
-                        if (value.length < 11) {
-                          return 'Phone number too short';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 24.h),
 
                     // Password Field
-                    Text('Password', style: AppTextStyle.bodyRegular),
+                    Text('New Password', style: AppTextStyle.bodyRegular),
                     SizedBox(height: 8.h),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
-                        hintText: 'Enter your password',
+                        hintText: 'Enter new password',
                         hintStyle: TextStyle(color: AppColors.neutral400),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
@@ -184,15 +149,54 @@ class _LoginFormState extends State<_LoginForm> {
                         return null;
                       },
                     ),
+                    SizedBox(height: 24.h),
+
+                    // Confirm Password Field
+                    Text('Confirm Password', style: AppTextStyle.bodyRegular),
+                    SizedBox(height: 8.h),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: !_isConfirmPasswordVisible,
+                      decoration: InputDecoration(
+                        hintText: 'Confirm new password',
+                        hintStyle: TextStyle(color: AppColors.neutral400),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        contentPadding: EdgeInsets.all(16.w),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isConfirmPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.neutral400,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
                     SizedBox(height: 48.h),
 
-                    // Login Button
+                    // Submit Button
                     SizedBox(
                       width: double.infinity,
                       height: 56.h,
                       child: ElevatedButton(
-                        onPressed:
-                            isLoading ? null : () => _onLoginPressed(context),
+                        onPressed: isLoading ? null : () => _onSubmit(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
@@ -210,7 +214,7 @@ class _LoginFormState extends State<_LoginForm> {
                                 ),
                               )
                             : Text(
-                                'Log In',
+                                'Set Password',
                                 style: AppTextStyle.bodyMedium.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,

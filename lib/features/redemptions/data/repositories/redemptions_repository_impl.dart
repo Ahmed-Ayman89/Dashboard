@@ -7,6 +7,15 @@ class RedemptionsRepositoryImpl implements RedemptionsRepository {
       RedemptionsRemoteDataSource();
 
   @override
+  Future<ApiResponse> getRedemptions({String? status}) async {
+    try {
+      return await _remoteDataSource.getRedemptions(status: status);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  @override
   Future<ApiResponse> getPendingRedemptions() async {
     try {
       return await _remoteDataSource.getPendingRedemptions();

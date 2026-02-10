@@ -13,9 +13,12 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
   RedemptionsCubit(this.getRedemptionsUseCase, this.processRedemptionUseCase)
       : super(RedemptionsInitial());
 
-  Future<void> getRedemptions() async {
+  String _currentStatus = 'PENDING';
+
+  Future<void> getRedemptions({String? status}) async {
+    if (status != null) _currentStatus = status;
     emit(RedemptionsLoading());
-    final response = await getRedemptionsUseCase();
+    final response = await getRedemptionsUseCase(status: _currentStatus);
     if (isClosed) return;
 
     if (response.error == null) {

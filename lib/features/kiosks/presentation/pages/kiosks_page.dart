@@ -139,6 +139,7 @@ class _KiosksView extends StatelessWidget {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
+                      showCheckboxColumn: false,
                       headingRowColor:
                           WidgetStateProperty.all(AppColors.neutral100),
                       columns: const [

@@ -102,7 +102,7 @@ class _KioskDuesDetailsView extends StatelessWidget {
         Expanded(
           child: _buildSummaryCard(
             'Total Generated',
-            '${financials.totalDuesGenerated.toStringAsFixed(0)} EGP',
+            '${financials.totalDuesGenerated.toStringAsFixed(0)} Points',
             AppColors.primary,
             Icons.monetization_on_outlined,
           ),
@@ -111,7 +111,7 @@ class _KioskDuesDetailsView extends StatelessWidget {
         Expanded(
           child: _buildSummaryCard(
             'Total Paid',
-            '${financials.totalPaid.toStringAsFixed(0)} EGP',
+            '${financials.totalPaid.toStringAsFixed(0)} Points',
             AppColors.success,
             Icons.check_circle_outline,
           ),
@@ -120,7 +120,7 @@ class _KioskDuesDetailsView extends StatelessWidget {
         Expanded(
           child: _buildSummaryCard(
             'Outstanding',
-            '${financials.outstandingBalance.toStringAsFixed(0)} EGP',
+            '${financials.outstandingBalance.toStringAsFixed(0)} Points',
             AppColors.error,
             Icons.pending_actions_outlined,
           ),
@@ -195,7 +195,7 @@ class _KioskDuesDetailsView extends StatelessWidget {
                   ),
                 ),
                 title: Text(
-                  '${item.amount.toStringAsFixed(0)} EGP',
+                  '${item.amount.toStringAsFixed(0)} Points',
                   style: AppTextStyle.bodyRegular
                       .copyWith(fontWeight: FontWeight.bold),
                 ),

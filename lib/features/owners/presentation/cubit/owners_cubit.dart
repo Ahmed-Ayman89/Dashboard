@@ -14,12 +14,20 @@ class OwnersCubit extends Cubit<OwnersState> {
   final int _limit = 10;
   List<OwnerModel> _allOwners = [];
   bool _hasReachedMax = false;
+  String _currentStatus = 'All';
+  String _currentSearch = '';
 
-  Future<void> getOwners({bool refresh = false, String search = ''}) async {
+  Future<void> getOwners({
+    bool refresh = false,
+    String search = '',
+    String? status,
+  }) async {
     if (refresh) {
       _currentPage = 1;
       _allOwners = [];
       _hasReachedMax = false;
+      _currentSearch = search;
+      if (status != null) _currentStatus = status;
       emit(OwnersLoading());
     } else {
       if (_allOwners.isEmpty) {
@@ -27,11 +35,9 @@ class OwnersCubit extends Cubit<OwnersState> {
       } else if (_hasReachedMax) {
         return;
       } else {
-        // Emit loading more state
         emit(OwnersLoaded(
           owners: _allOwners,
-          total:
-              0, // Keep existing total or passing 0 if not tracked in cubit var
+          total: 0,
           page: _currentPage,
           hasReachedMax: _hasReachedMax,
           isFetchingMore: true,
@@ -42,7 +48,8 @@ class OwnersCubit extends Cubit<OwnersState> {
     final response = await getOwnersUseCase(
       page: _currentPage,
       limit: _limit,
-      search: search,
+      search: _currentSearch,
+      status: _currentStatus,
     );
 
     if (isClosed) return;

@@ -5,4 +5,5 @@ abstract class AuthRepository {
   Future<ApiResponse> login(LoginRequestModel loginRequest);
   Future<void> logout();
   Future<ApiResponse> setPassword(String password);
+  Future<ApiResponse> verifyToken();
 }

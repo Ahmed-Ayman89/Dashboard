@@ -58,4 +58,14 @@ class AuthRepositoryImpl implements AuthRepository {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  @override
+  Future<ApiResponse> verifyToken() async {
+    try {
+      final response = await _remoteDataSource.verifyToken();
+      return response;
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

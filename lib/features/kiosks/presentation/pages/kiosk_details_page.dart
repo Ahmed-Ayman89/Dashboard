@@ -323,15 +323,14 @@ class _KioskDetailsView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${dues.balance.toStringAsFixed(0)} EGP',
+              Text('${dues.balance.toStringAsFixed(0)} Points',
                   style:
                       AppTextStyle.heading2.copyWith(color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 16),
-          _buildDetailRow('Overdue Count', dues.overdueCount.toString()),
-          _buildDetailRow(
-              'Overdue Amount', '${dues.overdueAmount.toStringAsFixed(0)} EGP',
+          _buildDetailRow('Overdue Amount',
+              '${dues.overdueAmount.toStringAsFixed(0)} Points',
               isError: dues.overdueAmount > 0),
         ],
       ),
@@ -652,7 +651,7 @@ void _showAdjustDuesDialog(BuildContext context, String kioskId) {
             TextFormField(
               controller: amountController,
               style: AppTextStyle.bodyRegular,
-              decoration: _buildInputDecoration('Amount (EGP)',
+              decoration: _buildInputDecoration('Amount (Points)',
                   hint: 'e.g. 500 or -200'),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),

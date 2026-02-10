@@ -10,11 +10,13 @@ class GetOwnersUseCase {
     int page = 1,
     int limit = 10,
     String search = '',
+    String? status,
   }) async {
     return await _repository.getOwners(
       page: page,
       limit: limit,
       search: search,
+      status: status,
     );
   }
 }

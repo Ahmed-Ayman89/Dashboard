@@ -30,13 +30,11 @@ class AdminUser {
 class CreateAdminRequest {
   final String fullName;
   final String phone;
-  final String password;
   final String adminRole;
 
   CreateAdminRequest({
     required this.fullName,
     required this.phone,
-    required this.password,
     required this.adminRole,
   });
 
@@ -44,7 +42,6 @@ class CreateAdminRequest {
     return {
       'fullName': fullName,
       'phone': phone,
-      'password': password,
       'adminRole': adminRole,
     };
   }

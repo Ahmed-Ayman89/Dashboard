@@ -13,6 +13,8 @@ class DashboardStatsCubit extends Cubit<DashboardStatsState> {
 
     final result = await getDashboardStatsUseCase();
 
+    if (isClosed) return;
+
     result.fold(
       (failure) => emit(DashboardStatsError(failure.message)),
       (stats) => emit(DashboardStatsSuccess(stats)),

@@ -80,7 +80,7 @@ class _DuesContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFormat =
-        NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+        NumberFormat.currency(symbol: 'Points ', decimalDigits: 0);
 
     // Use dashboard data if available, otherwise fallback/calculate locally
     final double totalOutstandingVal = dashboardData != null
@@ -243,14 +243,12 @@ class _DuesContent extends StatelessWidget {
               DataColumn(label: Text('Kiosk')),
               DataColumn(label: Text('Owner')),
               DataColumn(label: Text('Total Created')),
-              DataColumn(label: Text('Paid')),
               DataColumn(label: Text('Outstanding')),
               DataColumn(label: Text('Last Payment')),
               DataColumn(label: Text('Actions')),
             ],
             rows: dues.map((due) {
               final amount = double.tryParse(due.amount) ?? 0;
-              final paid = due.isPaid ? amount : 0;
               final outstanding = due.isPaid ? 0 : amount;
               final isHighRisk = !due.isPaid && _isHighRisk(due);
 
@@ -277,7 +275,6 @@ class _DuesContent extends StatelessWidget {
                 ),
                 DataCell(Text(due.ownerName)),
                 DataCell(Text(currencyFormat.format(amount))),
-                DataCell(Text(currencyFormat.format(paid))),
                 DataCell(
                   Text(
                     currencyFormat.format(outstanding),

@@ -162,7 +162,13 @@ class _RedemptionsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Redemptions Requests', style: AppTextStyle.heading2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Redemptions Requests', style: AppTextStyle.heading2),
+                _buildFilterChips(context),
+              ],
+            ),
             const SizedBox(height: 24),
             Expanded(
               child: Container(
@@ -291,6 +297,49 @@ class _RedemptionsView extends StatelessWidget {
         style: AppTextStyle.caption
             .copyWith(color: color, fontWeight: FontWeight.bold),
       ),
+    );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    return Row(
+      children: [
+        _buildFilterChip(context, 'Pending', AppColors.warning),
+        const SizedBox(width: 8),
+        _buildFilterChip(context, 'Approved', AppColors.success),
+        const SizedBox(width: 8),
+        _buildFilterChip(context, 'Rejected', AppColors.error),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(BuildContext context, String label, Color color) {
+    return BlocBuilder<RedemptionsCubit, RedemptionsState>(
+      builder: (context, state) {
+        return InkWell(
+          onTap: () {
+            context
+                .read<RedemptionsCubit>()
+                .getRedemptions(status: label.toUpperCase());
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.neutral200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.circle, size: 8, color: color),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: AppTextStyle.bodySmall
+                        .copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

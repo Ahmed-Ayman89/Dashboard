@@ -11,6 +11,7 @@ import 'package:dashboard_grow/features/redemptions/presentation/pages/redemptio
 import 'package:dashboard_grow/features/dues/presentation/pages/dues_page.dart';
 import 'package:dashboard_grow/features/settings/presentation/pages/settings_page.dart';
 import 'package:dashboard_grow/features/dashboard/presentation/pages/audit_log_page.dart';
+import 'package:dashboard_grow/features/calls/presentation/pages/calls_page.dart';
 import 'package:dashboard_grow/features/admin_team/presentation/pages/admin_team_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/nav_item.dart';
@@ -68,6 +69,10 @@ class _DashboardPageState extends State<DashboardPage> {
         title: 'Dues',
         icon: Icons.account_balance_wallet_rounded,
         destination: const DuesPage()),
+    NavItem(
+        title: 'Calls',
+        icon: Icons.call_rounded,
+        destination: const CallsPage()),
     NavItem(
         title: 'Settings',
         icon: Icons.settings_rounded,

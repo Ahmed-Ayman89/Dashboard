@@ -1,12 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/login_request_model.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/verify_token_usecase.dart';
 import 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   final LoginUseCase _loginUseCase;
+  final VerifyTokenUseCase _verifyTokenUseCase;
 
-  LoginCubit(this._loginUseCase) : super(LoginInitial());
+  LoginCubit(this._loginUseCase, this._verifyTokenUseCase)
+      : super(LoginInitial());
 
   Future<void> login(String phone, String password) async {
     emit(LoginLoading());
@@ -19,7 +22,34 @@ class LoginCubit extends Cubit<LoginState> {
       if (isClosed) return;
 
       if (response.isSuccess) {
-        emit(LoginSuccess());
+        // Verify token to check for tempAuth/mustChangePassword
+        try {
+          final verifyResponse = await _verifyTokenUseCase();
+          bool mustChangePassword = false;
+
+          if (verifyResponse.isSuccess && verifyResponse.data != null) {
+            final data = verifyResponse.data;
+            if (data is Map<String, dynamic> && data['data'] != null) {
+              final authData = data['data'];
+              final temp = authData['temp'];
+              final mustChange = authData['mustChangePassword'];
+              final firstLogin = authData['isFirstLogin'];
+
+              if (temp == true ||
+                  temp == 'true' ||
+                  mustChange == true ||
+                  mustChange == 'true' ||
+                  firstLogin == true ||
+                  firstLogin == 'true') {
+                mustChangePassword = true;
+              }
+            }
+          }
+
+          emit(LoginSuccess(mustChangePassword: mustChangePassword));
+        } catch (e) {
+          emit(LoginFailure("Authentication verification failed: $e"));
+        }
       } else {
         emit(LoginFailure(response.message ?? 'Login failed'));
       }

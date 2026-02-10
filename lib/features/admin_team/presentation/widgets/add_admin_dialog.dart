@@ -17,7 +17,6 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
   String? _selectedRole;
 
   final List<String> _roles = ['SUPER_ADMIN', 'EDITOR', 'VIEWER'];
@@ -26,7 +25,6 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -35,7 +33,6 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
       final request = CreateAdminRequest(
         fullName: _nameController.text,
         phone: _phoneController.text,
-        password: _passwordController.text,
         adminRole: _selectedRole!,
       );
       context.read<AdminTeamCubit>().createAdmin(request);
@@ -81,17 +78,6 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
                     keyboardType: TextInputType.phone,
                     validator: (value) => value == null || value.isEmpty
                         ? 'Phone is required'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    style: AppTextStyle.bodyRegular,
-                    decoration:
-                        _buildInputDecoration('Password', 'Enter password'),
-                    obscureText: true,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Password is required'
                         : null,
                   ),
                   const SizedBox(height: 16),

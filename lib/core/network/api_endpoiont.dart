@@ -20,6 +20,7 @@ abstract class EndPoints {
   static const String customerProfile = 'profile/customer';
   static const String login = 'auth/login';
   static const String adminTeam = 'admin/team';
+  static const String verify = 'auth/verify';
   static const String adminSetPassword = 'auth/admin/set-password';
   static const String auditLogs = 'admin/audit-logs';
   static const String dashboard = 'admin/dashboard';
@@ -29,9 +30,11 @@ abstract class EndPoints {
   static const String customers = 'admin/customers';
   static const String owners = 'admin/owners';
   static const String transactions = 'admin/transactions';
+  static const String redemptions = 'admin/redemptions';
   static const String redemptionsPending = 'admin/redemptions/pending';
   static const String redemptionsProcess = 'admin/redemptions/process';
   static const String dues = 'admin/dues';
   static const String collectDue = 'admin/dues/collect';
   static const String settings = 'admin/settings';
+  static const String adminCalls = 'admin/calls';
 }

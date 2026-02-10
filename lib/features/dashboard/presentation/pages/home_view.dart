@@ -54,7 +54,7 @@ class HomeView extends StatelessWidget {
             SizedBox(height: isMobile ? 24 : 32),
             const FilteredAnalyticsChart(),
             SizedBox(height: isMobile ? 24 : 32),
-            _buildChartsSection(isMobile),
+            // _buildChartsSection(isMobile),
             SizedBox(height: isMobile ? 24 : 32),
             if (isMobile) ...{
               // _buildSystemHealth(),
@@ -75,74 +75,74 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildChartsSection(bool isMobile) {
-    if (isMobile) {
-      return Column(
-        children: [
-          AnalyticsChart(
-            title: 'Accumulative Transactions',
-            spots: const [
-              FlSpot(0, 5),
-              FlSpot(1, 12),
-              FlSpot(2, 18),
-              FlSpot(3, 22),
-              FlSpot(4, 30),
-              FlSpot(5, 35),
-            ],
-            xAxisLabels: const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          ),
-          const SizedBox(height: 24),
-          AnalyticsChart(
-            title: 'Daily Points Sent',
-            spots: const [
-              FlSpot(0, 10),
-              FlSpot(1, 8),
-              FlSpot(2, 12),
-              FlSpot(3, 14),
-              FlSpot(4, 9),
-              FlSpot(5, 15),
-            ],
-            xAxisLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-            chartColor: AppColors.secondary,
-          ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: AnalyticsChart(
-            title: 'Accumulative Transactions',
-            spots: const [
-              FlSpot(0, 5),
-              FlSpot(1, 12),
-              FlSpot(2, 18),
-              FlSpot(3, 22),
-              FlSpot(4, 30),
-              FlSpot(5, 35),
-            ],
-            xAxisLabels: const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: AnalyticsChart(
-            title: 'Daily Points Sent',
-            spots: const [
-              FlSpot(0, 10),
-              FlSpot(1, 8),
-              FlSpot(2, 12),
-              FlSpot(3, 14),
-              FlSpot(4, 9),
-              FlSpot(5, 15),
-            ],
-            xAxisLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-            chartColor: AppColors.secondary,
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildChartsSection(bool isMobile) {
+  //   if (isMobile) {
+  //     return Column(
+  //       children: [
+  //         AnalyticsChart(
+  //           title: 'Accumulative Transactions',
+  //           spots: const [
+  //             FlSpot(0, 5),
+  //             FlSpot(1, 12),
+  //             FlSpot(2, 18),
+  //             FlSpot(3, 22),
+  //             FlSpot(4, 30),
+  //             FlSpot(5, 35),
+  //           ],
+  //           xAxisLabels: const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  //         ),
+  //         const SizedBox(height: 24),
+  //         AnalyticsChart(
+  //           title: 'Daily Points Sent',
+  //           spots: const [
+  //             FlSpot(0, 10),
+  //             FlSpot(1, 8),
+  //             FlSpot(2, 12),
+  //             FlSpot(3, 14),
+  //             FlSpot(4, 9),
+  //             FlSpot(5, 15),
+  //           ],
+  //           xAxisLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  //           chartColor: AppColors.secondary,
+  //         ),
+  //       ],
+  //     );
+  //   }
+  //   return Row(
+  //     children: [
+  //       Expanded(
+  //         child: AnalyticsChart(
+  //           title: 'Accumulative Transactions',
+  //           spots: const [
+  //             FlSpot(0, 5),
+  //             FlSpot(1, 12),
+  //             FlSpot(2, 18),
+  //             FlSpot(3, 22),
+  //             FlSpot(4, 30),
+  //             FlSpot(5, 35),
+  //           ],
+  //           xAxisLabels: const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  //         ),
+  //       ),
+  //       const SizedBox(width: 24),
+  //       Expanded(
+  //         child: AnalyticsChart(
+  //           title: 'Daily Points Sent',
+  //           spots: const [
+  //             FlSpot(0, 10),
+  //             FlSpot(1, 8),
+  //             FlSpot(2, 12),
+  //             FlSpot(3, 14),
+  //             FlSpot(4, 9),
+  //             FlSpot(5, 15),
+  //           ],
+  //           xAxisLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  //           chartColor: AppColors.secondary,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildHeader(bool isMobile) {
     if (isMobile) {

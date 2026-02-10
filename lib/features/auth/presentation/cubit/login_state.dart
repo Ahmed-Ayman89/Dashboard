@@ -11,7 +11,14 @@ class LoginInitial extends LoginState {}
 
 class LoginLoading extends LoginState {}
 
-class LoginSuccess extends LoginState {}
+class LoginSuccess extends LoginState {
+  final bool mustChangePassword;
+
+  const LoginSuccess({this.mustChangePassword = false});
+
+  @override
+  List<Object> get props => [mustChangePassword];
+}
 
 class LoginFailure extends LoginState {
   final String message;
