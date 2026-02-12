@@ -323,15 +323,15 @@ class _KioskDetailsView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${dues.balance.toStringAsFixed(0)} Points',
+              Text('${(dues.balance ?? 0).toStringAsFixed(0)} Points',
                   style:
                       AppTextStyle.heading2.copyWith(color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 16),
           _buildDetailRow('Overdue Amount',
-              '${dues.overdueAmount.toStringAsFixed(0)} Points',
-              isError: dues.overdueAmount > 0),
+              '${(dues.overdueAmount ?? 0).toStringAsFixed(0)} Points',
+              isError: (dues.overdueAmount ?? 0) > 0),
         ],
       ),
     );

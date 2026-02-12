@@ -22,7 +22,10 @@ class KioskDetailModel {
       workers: json['workers'] ?? [],
       topRecipients: json['top_recipients'] ?? [],
       dues: KioskDues.fromJson(json['dues']),
-      goals: (json['goals'] as List).map((e) => KioskGoal.fromJson(e)).toList(),
+      goals: (json['goals'] as List?)
+              ?.map((e) => KioskGoal.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
@@ -80,22 +83,22 @@ class KioskOwnerDetail {
 }
 
 class KioskDues {
-  final num balance;
+  final num? balance;
   final int overdueCount;
-  final num overdueAmount;
+  final num? overdueAmount;
   final List<dynamic> recent;
 
   const KioskDues({
-    required this.balance,
+    this.balance,
     required this.overdueCount,
-    required this.overdueAmount,
+    this.overdueAmount,
     required this.recent,
   });
 
   factory KioskDues.fromJson(Map<String, dynamic> json) {
     return KioskDues(
       balance: json['balance'],
-      overdueCount: json['overdue_count'],
+      overdueCount: json['overdue_count'] ?? 0,
       overdueAmount: json['overdue_amount'],
       recent: json['recent'] ?? [],
     );

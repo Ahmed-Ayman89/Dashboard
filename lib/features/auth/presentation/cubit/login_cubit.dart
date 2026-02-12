@@ -1,3 +1,5 @@
+import 'package:dashboard_grow/core/services/notification_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/login_request_model.dart';
 import '../../domain/usecases/login_usecase.dart';
@@ -16,7 +18,10 @@ class LoginCubit extends Cubit<LoginState> {
 
     try {
       final response = await _loginUseCase(
-        LoginRequestModel(phone: phone, password: password),
+        LoginRequestModel(
+          phone: phone,
+          password: password,
+        ),
       );
 
       if (isClosed) return;
@@ -31,18 +36,31 @@ class LoginCubit extends Cubit<LoginState> {
             final data = verifyResponse.data;
             if (data is Map<String, dynamic> && data['data'] != null) {
               final authData = data['data'];
-              final temp = authData['temp'];
+              final temp = authData[
+                  'temp']; // Use 'temp' (from response) or 'isTemp' based on API.
               final mustChange = authData['mustChangePassword'];
-              final firstLogin = authData['isFirstLogin'];
+              final isFirstLogin = authData['isFirstLogin'];
 
               if (temp == true ||
                   temp == 'true' ||
                   mustChange == true ||
                   mustChange == 'true' ||
-                  firstLogin == true ||
-                  firstLogin == 'true') {
+                  isFirstLogin == true ||
+                  isFirstLogin == 'true') {
                 mustChangePassword = true;
               }
+            }
+          }
+
+          // Sync FCM Token (only on mobile platforms)
+          if (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS)) {
+            try {
+              await NotificationService.instance.syncCurrentToken();
+            } catch (e) {
+              // Don't fail login if FCM sync fails
+              print('FCM token sync failed: $e');
             }
           }
 

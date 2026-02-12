@@ -7,9 +7,11 @@ class AuthRemoteDataSource {
   final APIHelper _apiHelper = APIHelper();
 
   Future<ApiResponse> login(LoginRequestModel loginRequest) async {
+    final jsonData = loginRequest.toJson();
+    print('Login Request JSON: $jsonData'); // Debug print
     return await _apiHelper.postRequest(
       endPoint: EndPoints.login,
-      data: loginRequest.toJson(),
+      data: jsonData,
       isAuthorized: false, // Login usually doesn't need token
       isFormData: false,
     );

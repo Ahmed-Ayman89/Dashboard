@@ -1,5 +1,6 @@
 abstract class EndPoints {
   static const String baseUrl = 'https://grow-server-beta.vercel.app/api/v1/';
+  static const String fcmToken = 'notifications/token';
   static const String refreshToken = 'refreshToken';
   static const String customerRegisterInit = 'auth/customer/register/init';
   static const String customerVerifyOtp = 'auth/customer/verify-otp';

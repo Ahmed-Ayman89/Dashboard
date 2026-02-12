@@ -22,10 +22,27 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
     if (isClosed) return;
 
     if (response.error == null) {
-      final List<dynamic> data = response.data['data']['redemptions'];
-      final List<RedemptionModel> redemptions =
-          data.map((e) => RedemptionModel.fromJson(e)).toList();
-      emit(RedemptionsLoaded(redemptions: redemptions));
+      try {
+        // Handle different response structures
+        final dynamic responseData = response.data['data'];
+        final List<dynamic> data;
+
+        if (responseData is Map && responseData.containsKey('redemptions')) {
+          data = responseData['redemptions'];
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          emit(RedemptionsFailure(message: 'Invalid response format'));
+          return;
+        }
+
+        final List<RedemptionModel> redemptions =
+            data.map((e) => RedemptionModel.fromJson(e)).toList();
+        emit(RedemptionsLoaded(redemptions: redemptions));
+      } catch (e) {
+        emit(
+            RedemptionsFailure(message: 'Error parsing data: ${e.toString()}'));
+      }
     } else {
       emit(RedemptionsFailure(message: response.message ?? 'Unknown error'));
     }

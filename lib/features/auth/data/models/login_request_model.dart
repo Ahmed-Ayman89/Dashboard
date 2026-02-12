@@ -11,6 +11,7 @@ class LoginRequestModel {
     return {
       'phone': phone,
       'password': password,
+      'admin': true,
     };
   }
 }

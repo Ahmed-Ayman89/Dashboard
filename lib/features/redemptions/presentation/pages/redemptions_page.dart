@@ -166,7 +166,12 @@ class _RedemptionsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Redemptions Requests', style: AppTextStyle.heading2),
-                _buildFilterChips(context),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _buildFilterChips(context),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -303,11 +308,13 @@ class _RedemptionsView extends StatelessWidget {
   Widget _buildFilterChips(BuildContext context) {
     return Row(
       children: [
-        _buildFilterChip(context, 'Pending', AppColors.warning),
+        _buildFilterChip(context, 'PENDING', AppColors.warning),
         const SizedBox(width: 8),
-        _buildFilterChip(context, 'Approved', AppColors.success),
+        _buildFilterChip(context, 'COMPLETED', AppColors.success),
         const SizedBox(width: 8),
-        _buildFilterChip(context, 'Rejected', AppColors.error),
+        _buildFilterChip(context, 'FAILED', AppColors.error),
+        const SizedBox(width: 8),
+        _buildFilterChip(context, 'REJECTED', AppColors.neutral600),
       ],
     );
   }
