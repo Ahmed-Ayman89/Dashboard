@@ -17,6 +17,19 @@ class AuthRemoteDataSource {
     );
   }
 
+  Future<ApiResponse> deleteFcmToken(String token) async {
+    print('AuthRemoteDataSource: Deleting FCM token: $token');
+    final response = await _apiHelper.deleteRequest(
+      endPoint: EndPoints.fcmToken,
+      data: {'token': token},
+      isAuthorized: true,
+      isFormData: false,
+    );
+    print(
+        'AuthRemoteDataSource: deleteFcmToken response status: ${response.statusCode}');
+    return response;
+  }
+
   Future<ApiResponse> setPassword(String password) async {
     return await _apiHelper.postRequest(
       endPoint: EndPoints.adminSetPassword,

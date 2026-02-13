@@ -46,6 +46,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<ApiResponse> deleteFcmToken(String token) async {
+    try {
+      return await _remoteDataSource.deleteFcmToken(token);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await LocalData.clear();
   }

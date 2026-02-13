@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -8,7 +7,7 @@ class LocalNotificationService {
 
   static Future<void> initialize() async {
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
@@ -39,18 +38,20 @@ class LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    log('Local notifications initialized');
+    print('Local notifications initialized');
   }
 
   static void onNotificationTap(NotificationResponse response) {
     final payload = response.payload;
     if (payload != null) {
-      log('Notification tapped with payload: $payload');
+      print('Notification tapped with payload: $payload');
     }
   }
 
+  @pragma('vm:entry-point')
   static Future<void> display(RemoteMessage message) async {
     try {
+      print('LocalNotificationService: Displaying notification...');
       final notification = message.notification;
       final data = message.data;
       final android = message.notification?.android;
@@ -71,7 +72,7 @@ class LocalNotificationService {
                   'This channel is used for important notifications.',
               importance: Importance.high,
               priority: Priority.high,
-              icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+              icon: android?.smallIcon ?? '@mipmap/launcher_icon',
             ),
             iOS: const DarwinNotificationDetails(
               presentAlert: true,
@@ -81,10 +82,12 @@ class LocalNotificationService {
           ),
           payload: message.data.toString(),
         );
-        log('Local notification displayed: $title');
+        print('Local notification displayed: $title');
+      } else {
+        print('LocalNotificationService: Title and body are null');
       }
     } catch (e) {
-      log('Error displaying local notification: $e');
+      print('Error displaying local notification: $e');
     }
   }
 
@@ -102,7 +105,7 @@ class LocalNotificationService {
                 'This channel is used for important notifications.',
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: '@mipmap/launcher_icon',
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -111,9 +114,9 @@ class LocalNotificationService {
           ),
         ),
       );
-      log('Test notification displayed successfully');
+      print('Test notification displayed successfully');
     } catch (e) {
-      log('Error displaying test notification: $e');
+      print('Error displaying test notification: $e');
     }
   }
 }

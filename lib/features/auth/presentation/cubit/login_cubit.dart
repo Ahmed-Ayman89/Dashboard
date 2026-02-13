@@ -56,12 +56,18 @@ class LoginCubit extends Cubit<LoginState> {
           if (!kIsWeb &&
               (defaultTargetPlatform == TargetPlatform.android ||
                   defaultTargetPlatform == TargetPlatform.iOS)) {
+            print(
+                "LoginCubit: Mobile platform detected, attempting to sync FCM token...");
             try {
               await NotificationService.instance.syncCurrentToken();
+              print("LoginCubit: FCM token sync initiated successfully.");
             } catch (e) {
               // Don't fail login if FCM sync fails
-              print('FCM token sync failed: $e');
+              print('LoginCubit: FCM token sync failed: $e');
             }
+          } else {
+            print(
+                "LoginCubit: Skipping FCM sync (Web or non-mobile platform).");
           }
 
           emit(LoginSuccess(mustChangePassword: mustChangePassword));

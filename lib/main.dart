@@ -22,26 +22,37 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  APIHelper.init();
-  await LocalData.init();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    // Initialize APIHelper and wait for it
+    await APIHelper.init();
+    // Initialize LocalData and wait for it
+    await LocalData.init();
 
-  if (!kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS)) {
-    print("Initializing Firebase for mobile platform...");
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      print("Initializing Firebase for mobile platform...");
 
-    await Firebase.initializeApp();
-    print("Firebase initialized successfully");
+      try {
+        await Firebase.initializeApp();
+        print("Firebase initialized successfully");
 
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    print("Background message handler set");
+        FirebaseMessaging.onBackgroundMessage(
+            _firebaseMessagingBackgroundHandler);
+        print("Background message handler set");
 
-    await LocalNotificationService.initialize();
-    print("Local notifications initialized");
+        await LocalNotificationService.initialize();
+        print("Local notifications initialized");
 
-    await NotificationService.instance.init();
-    print("NotificationService initialized");
+        await NotificationService.instance.init();
+        print("NotificationService initialized");
+      } catch (e) {
+        print("Error during mobile-specific initialization: $e");
+      }
+    }
+  } catch (e) {
+    print("Critical error during app startup: $e");
   }
 
   runApp(const MyApp());

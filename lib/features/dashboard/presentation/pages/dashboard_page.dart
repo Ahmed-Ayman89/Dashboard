@@ -20,6 +20,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../auth/domain/usecases/logout_usecase.dart';
+import '../../../auth/domain/usecases/delete_fcm_token_usecase.dart';
 import '../../../auth/presentation/cubit/logout_cubit.dart';
 import '../../../auth/presentation/cubit/logout_state.dart';
 import '../../../Onboarding/onboarding_screen.dart';
@@ -86,9 +87,13 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LogoutCubit(
-        LogoutUseCase(AuthRepositoryImpl()),
-      ),
+      create: (context) {
+        final authRepository = AuthRepositoryImpl();
+        return LogoutCubit(
+          LogoutUseCase(authRepository),
+          DeleteFcmTokenUseCase(authRepository),
+        );
+      },
       child: BlocListener<LogoutCubit, LogoutState>(
         listener: (context, state) {
           if (state is LogoutSuccess) {

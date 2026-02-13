@@ -22,55 +22,60 @@ class NotificationService {
 
   Future<void> init() async {
     if (!_isSupported) {
-      log("Firebase Messaging not supported on this platform");
+      print("Firebase Messaging not supported on this platform");
       return;
     }
 
     try {
       _messaging = FirebaseMessaging.instance;
-      log("NotificationService: Initializing...");
+      print("NotificationService: Initializing...");
 
       await requestPermission();
 
       String? token = await _messaging?.getToken();
       if (token != null) {
-        log("FCM Token: $token");
+        print("FCM Token: $token");
+        // Save token locally for reliable access
+        await LocalData.saveRegistrationToken(token);
+
         if (LocalData.accessToken != null) {
-          log("Syncing FCM token with backend...");
-          await syncToken(token);
+          print("Syncing FCM token with backend...");
+          // Don't await syncToken to avoid stalling app initialization
+          syncToken(token);
         } else {
-          log("No access token, will sync FCM token after login");
+          print("No access token, will sync FCM token after login");
         }
       } else {
-        log("Failed to get FCM token");
+        print("Failed to get FCM token");
       }
 
       _messaging?.onTokenRefresh.listen((newToken) {
-        log("FCM Token Refreshed: $newToken");
+        print("FCM Token Refreshed: $newToken");
         syncToken(newToken);
       });
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        log('Got a message whilst in the foreground!');
-        log('Message data: ${message.data}');
-        log('Message notification: ${message.notification?.title} - ${message.notification?.body}');
+        print('Got a message whilst in the foreground!');
+        print('Message data: ${message.data}');
+        print(
+            'Message notification: ${message.notification?.title} - ${message.notification?.body}');
         LocalNotificationService.display(message);
       });
 
       RemoteMessage? initialMessage = await _messaging?.getInitialMessage();
       if (initialMessage != null) {
-        log('App opened from terminated state via notification!');
-        log('Initial message data: ${initialMessage.data}');
+        print('App opened from terminated state via notification!');
+        print('Initial message data: ${initialMessage.data}');
       }
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        log('Message clicked!');
-        log('Data: ${message.data}');
+        print('Message clicked!');
+        print('Data: ${message.data}');
       });
 
-      log("NotificationService: Initialization complete");
+      print("NotificationService: Initialization complete");
     } catch (e) {
-      log("Error initializing Firebase Messaging: $e");
+      print("Error initializing Firebase Messaging: $e");
     }
   }
 
@@ -90,14 +95,14 @@ class NotificationService {
 
       print('User granted permission: ${settings.authorizationStatus}');
     } catch (e) {
-      log("Error requesting permission: $e");
+      print("Error requesting permission: $e");
     }
   }
 
   Future<void> syncToken(String? token) async {
     if (token == null) return;
 
-    log("NotificationService: Sending token to backend: $token");
+    print("NotificationService: Sending token to backend: $token");
     try {
       final response = await APIHelper().postRequest(
         endPoint: EndPoints.fcmToken,
@@ -111,32 +116,36 @@ class NotificationService {
       );
 
       if (response.isSuccess) {
-        log("FCM Token synced successfully: ${response.message}");
+        print("FCM Token synced successfully: ${response.message}");
       } else {
-        log("Failed to sync FCM token: ${response.message}");
+        print("Failed to sync FCM token: ${response.message}");
       }
     } catch (e) {
-      log("Error syncing FCM token: $e");
+      print("Error syncing FCM token: $e");
     }
   }
 
   Future<String?> getToken() async {
     if (!_isSupported || _messaging == null) {
-      log("Firebase not initialized or not supported");
+      print("Firebase not initialized or not supported");
       return null;
     }
 
     try {
-      return await _messaging?.getToken();
+      String? token = await _messaging?.getToken();
+      print("NotificationService: getToken result: $token");
+      return token;
     } catch (e) {
-      log("Error getting token: $e");
+      print("Error getting token: $e");
+      print(
+          "CRITICAL: FCM getToken failed: $e"); // Ensure this prints to console
       return null;
     }
   }
 
   Future<void> syncCurrentToken() async {
     if (!_isSupported) {
-      log("FCM not supported on this platform");
+      print("FCM not supported on this platform");
       return;
     }
 
@@ -144,9 +153,11 @@ class NotificationService {
       final token = await getToken();
       if (token != null) {
         await syncToken(token);
+      } else {
+        print("syncCurrentToken: Token is null, cannot sync.");
       }
     } catch (e) {
-      log("Error syncing token: $e");
+      print("Error syncing token: $e");
     }
   }
 }

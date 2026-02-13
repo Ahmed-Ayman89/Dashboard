@@ -12,8 +12,6 @@ import '../../data/repositories/graph_repository_impl.dart';
 import '../../data/repositories/dashboard_stats_repository_impl.dart';
 import '../../domain/usecases/get_graph_data_usecase.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
-import 'package:dashboard_grow/core/services/notification_service.dart';
-import 'package:dashboard_grow/core/services/local_notification_service.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -68,35 +66,6 @@ class HomeView extends StatelessWidget {
                 ),
             ],
           ),
-        ),
-        floatingActionButton: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            FloatingActionButton.extended(
-              heroTag: 'sync_fcm',
-              onPressed: () {
-                NotificationService.instance.syncCurrentToken();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('جاري مزامنة توكن الإشعارات...')),
-                );
-              },
-              icon: const Icon(Icons.sync_rounded),
-              label: const Text('مزامنة التوكن'),
-              backgroundColor: AppColors.secondary,
-            ),
-            const SizedBox(height: 12),
-            FloatingActionButton.extended(
-              heroTag: 'test_notification',
-              onPressed: () {
-                LocalNotificationService.showTestNotification();
-              },
-              icon: const Icon(Icons.notifications_active_rounded),
-              label: const Text('اختبار الإشعار'),
-              backgroundColor: AppColors.brandPrimary,
-            ),
-          ],
         ),
       ),
     );
