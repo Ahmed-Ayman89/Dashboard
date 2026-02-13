@@ -38,9 +38,9 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_secure_storage: ^10.0.0
   dio: ^5.9.1
-  flutter_svg: ^2.2.3
+  flutter_svg: 
   percent_indicator: ^4.2.3
-  smooth_page_indicator: ^2.0.1
+  smooth_page_indicator: ^1.1.0
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
   dartz: ^0.10.1

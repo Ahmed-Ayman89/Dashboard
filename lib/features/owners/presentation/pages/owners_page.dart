@@ -215,20 +215,10 @@ class _OwnersViewState extends State<_OwnersView> {
   }
 
   Widget _buildFilterChip(BuildContext context, String label, Color? color) {
-    // We need to know current selected status.
-    // Ideally use BlocBuilder but to keep it simple we just trigger refresh.
-    // Or we can rebuild this part based on state?
-    // Let's assume text style change for now or simple click.
-    // Better: wrap with BlocBuilder to highlight selected.
     return BlocBuilder<OwnersCubit, OwnersState>(
       builder: (context, state) {
-        // This is a bit hacky to get current status since it's private in Cubit
-        // But we can just use the label on tap.
-        // Actually we can't easily know which is selected without exposing it in state.
-        // For now, simple chips that trigger load.
         return InkWell(
           onTap: () {
-            // Map 'Active' to 'APPROVED' if needed, or backend handles it.
             String status = label;
             if (label == 'Active') status = 'APPROVED';
 
@@ -309,6 +299,7 @@ class _OwnersViewState extends State<_OwnersView> {
             cells: [
               DataCell(
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     CircleAvatar(
                       radius: 18,
@@ -320,20 +311,15 @@ class _OwnersViewState extends State<_OwnersView> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(owner.fullName,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyle.bodyMedium
-                                  .copyWith(fontWeight: FontWeight.bold)),
-                          Text(owner.phone,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyle.caption),
-                        ],
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(owner.fullName,
+                            style: AppTextStyle.bodyMedium
+                                .copyWith(fontWeight: FontWeight.bold)),
+                        Text(owner.phone, style: AppTextStyle.caption),
+                      ],
                     ),
                   ],
                 ),

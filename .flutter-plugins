@@ -1,4 +1,11 @@
 # This is a generated file; do not edit or check into version control.
+firebase_core=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core-4.4.0\\
+firebase_core_web=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core_web-3.4.0\\
+firebase_messaging=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_messaging-16.1.1\\
+firebase_messaging_web=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_messaging_web-4.1.2\\
+flutter_local_notifications=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_local_notifications-19.5.0\\
+flutter_local_notifications_linux=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_local_notifications_linux-6.0.0\\
+flutter_local_notifications_windows=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_local_notifications_windows-1.0.3\\
 flutter_secure_storage=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_secure_storage-10.0.0\\
 flutter_secure_storage_darwin=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_secure_storage_darwin-0.2.0\\
 flutter_secure_storage_linux=C:\\Users\\workstation\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_secure_storage_linux-3.0.0\\

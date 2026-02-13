@@ -78,32 +78,48 @@ class _OwnerDetailsView extends StatelessWidget {
                   const SizedBox(height: 24),
                   OwnerGraphSection(ownerId: ownerId),
                   const SizedBox(height: 24),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            _buildSectionHeader('Kiosks'),
-                            const SizedBox(height: 16),
-                            _buildKiosksList(state.owner.kiosks),
-                          ],
+                  LayoutBuilder(builder: (context, constraints) {
+                    final isSmallScreen = constraints.maxWidth < 900;
+                    if (isSmallScreen) {
+                      return Column(
+                        children: [
+                          _buildSectionHeader('Kiosks'),
+                          const SizedBox(height: 16),
+                          _buildKiosksList(state.owner.kiosks),
+                          const SizedBox(height: 32),
+                          _buildSectionHeader('Recent History'),
+                          const SizedBox(height: 16),
+                          _buildHistoryList(state.owner.history),
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              _buildSectionHeader('Kiosks'),
+                              const SizedBox(height: 16),
+                              _buildKiosksList(state.owner.kiosks),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            _buildSectionHeader('Recent History'),
-                            const SizedBox(height: 16),
-                            _buildHistoryList(state.owner.history),
-                          ],
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              _buildSectionHeader('Recent History'),
+                              const SizedBox(height: 16),
+                              _buildHistoryList(state.owner.history),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             );
@@ -155,48 +171,55 @@ class _OwnerDetailsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 12,
                   children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(profile.fullName,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyle.heading2),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildStatusBadge(profile.status),
-                        ],
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(profile.fullName,
+                              style: AppTextStyle.heading2,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(width: 12),
+                        _buildStatusBadge(profile.status),
+                      ],
                     ),
                     const SizedBox(width: 8),
                     _buildActionButton(context, profile),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 24,
+                  runSpacing: 8,
                   children: [
-                    const Icon(Icons.phone,
-                        size: 16, color: AppColors.neutral500),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(profile.phone,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.bodyRegular
-                              .copyWith(color: AppColors.neutral600)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.phone,
+                            size: 16, color: AppColors.neutral500),
+                        const SizedBox(width: 8),
+                        Text(profile.phone,
+                            style: AppTextStyle.bodyRegular
+                                .copyWith(color: AppColors.neutral600)),
+                      ],
                     ),
-                    const SizedBox(width: 24),
-                    const Icon(Icons.calendar_today,
-                        size: 16, color: AppColors.neutral500),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                          'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.bodyRegular
-                              .copyWith(color: AppColors.neutral600)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.calendar_today,
+                            size: 16, color: AppColors.neutral500),
+                        const SizedBox(width: 8),
+                        Text(
+                            'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
+                            style: AppTextStyle.bodyRegular
+                                .copyWith(color: AppColors.neutral600)),
+                      ],
                     ),
                   ],
                 ),
@@ -209,11 +232,6 @@ class _OwnerDetailsView extends StatelessWidget {
   }
 
   Widget _buildActionButton(BuildContext context, OwnerProfile profile) {
-    // Actions based on status
-    // PENDING -> Verify, Reject
-    // ACTIVE -> Freeze, Delete
-    // SUSPENDED/FROZEN -> Activate
-
     List<Widget> actions = [];
 
     if (profile.status.toUpperCase() == 'PENDING') {
@@ -371,7 +389,7 @@ class _OwnerDetailsView extends StatelessWidget {
 
     switch (status.toUpperCase()) {
       case 'APPROVED':
-      case 'ACTIVE': // Handle ACTIVE as well
+      case 'ACTIVE':
         bg = AppColors.success.withOpacity(0.1);
         fg = AppColors.success;
         label = 'Active';
@@ -381,7 +399,6 @@ class _OwnerDetailsView extends StatelessWidget {
         fg = AppColors.warning;
         break;
       case 'SUSPENDED':
-      case 'frozen': // check case
       case 'FROZEN':
       case 'REJECTED':
         bg = AppColors.error.withOpacity(0.1);
@@ -481,9 +498,9 @@ class _OwnerDetailsView extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(title,
-                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyle.bodySmall
-                        .copyWith(color: AppColors.neutral500)),
+                        .copyWith(color: AppColors.neutral500),
+                    overflow: TextOverflow.ellipsis),
               ),
             ],
           ),
@@ -559,8 +576,6 @@ class _OwnerDetailsView extends StatelessWidget {
     if (history.transactions.isEmpty && history.redemptions.isEmpty) {
       return _buildEmptyState('No recent activity');
     }
-    // Mixing transactions and redemptions or showing just tabs could differ.
-    // Showing simple list for now.
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

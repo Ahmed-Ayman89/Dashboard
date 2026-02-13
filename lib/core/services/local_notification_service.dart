@@ -27,7 +27,6 @@ class LocalNotificationService {
       onDidReceiveNotificationResponse: onNotificationTap,
     );
 
-    // Create Android notification channel
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',
       'High Importance Notifications',
@@ -44,25 +43,26 @@ class LocalNotificationService {
   }
 
   static void onNotificationTap(NotificationResponse response) {
-    // Handle notification tap - navigate to specific screen
     final payload = response.payload;
     if (payload != null) {
       log('Notification tapped with payload: $payload');
-      // TODO: Parse payload and navigate to appropriate screen
-      // Example: if payload contains redemption_id, navigate to redemption details
     }
   }
 
   static Future<void> display(RemoteMessage message) async {
     try {
       final notification = message.notification;
+      final data = message.data;
       final android = message.notification?.android;
 
-      if (notification != null) {
+      String? title = notification?.title ?? data['title'];
+      String? body = notification?.body ?? data['body'];
+
+      if (title != null || body != null) {
         await _notificationsPlugin.show(
           notification.hashCode,
-          notification.title,
-          notification.body,
+          title,
+          body,
           NotificationDetails(
             android: AndroidNotificationDetails(
               'high_importance_channel',
@@ -81,14 +81,13 @@ class LocalNotificationService {
           ),
           payload: message.data.toString(),
         );
-        log('Local notification displayed: ${notification.title}');
+        log('Local notification displayed: $title');
       }
     } catch (e) {
       log('Error displaying local notification: $e');
     }
   }
 
-  /// Show a test notification to verify the notification system is working
   static Future<void> showTestNotification() async {
     try {
       await _notificationsPlugin.show(

@@ -27,13 +27,11 @@ class NotificationService {
     }
 
     try {
-      // Firebase is already initialized in main.dart
       _messaging = FirebaseMessaging.instance;
       log("NotificationService: Initializing...");
 
       await requestPermission();
 
-      // Get initial token
       String? token = await _messaging?.getToken();
       if (token != null) {
         log("FCM Token: $token");
@@ -47,31 +45,27 @@ class NotificationService {
         log("Failed to get FCM token");
       }
 
-      // Listen for token refresh
       _messaging?.onTokenRefresh.listen((newToken) {
         log("FCM Token Refreshed: $newToken");
         syncToken(newToken);
       });
 
-      // Foreground message handler - display using local notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         log('Got a message whilst in the foreground!');
         log('Message data: ${message.data}');
-
-        if (message.notification != null) {
-          log('Message also contained a notification: ${message.notification}');
-
-          // Display notification using local notifications
-          LocalNotificationService.display(message);
-        }
+        log('Message notification: ${message.notification?.title} - ${message.notification?.body}');
+        LocalNotificationService.display(message);
       });
 
-      // Handle notification tap when app is in background
+      RemoteMessage? initialMessage = await _messaging?.getInitialMessage();
+      if (initialMessage != null) {
+        log('App opened from terminated state via notification!');
+        log('Initial message data: ${initialMessage.data}');
+      }
+
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         log('Message clicked!');
         log('Data: ${message.data}');
-        // TODO: Handle navigation based on message.data
-        // Example: if (message.data['type'] == 'REDEMPTION_REQUEST_NEW') { navigate to redemptions }
       });
 
       log("NotificationService: Initialization complete");
@@ -103,6 +97,7 @@ class NotificationService {
   Future<void> syncToken(String? token) async {
     if (token == null) return;
 
+    log("NotificationService: Sending token to backend: $token");
     try {
       final response = await APIHelper().postRequest(
         endPoint: EndPoints.fcmToken,
@@ -116,7 +111,7 @@ class NotificationService {
       );
 
       if (response.isSuccess) {
-        log("FCM Token synced successfully");
+        log("FCM Token synced successfully: ${response.message}");
       } else {
         log("Failed to sync FCM token: ${response.message}");
       }
