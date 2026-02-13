@@ -32,8 +32,13 @@ class GraphDataPointModel extends Equatable {
     final count = json['count'] as int? ?? 0;
     final volume = (json['volume'] as num?)?.toDouble() ?? 0.0;
 
-    // Use volume as the primary value for the graph
-    final value = volume;
+    // Determine value: use volume if present in JSON, otherwise fallback to count
+    double value;
+    if (json.containsKey('volume') && json['volume'] != null) {
+      value = volume;
+    } else {
+      value = count.toDouble();
+    }
 
     return GraphDataPointModel(
       label: label,
