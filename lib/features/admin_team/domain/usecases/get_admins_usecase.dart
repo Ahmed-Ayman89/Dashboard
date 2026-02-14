@@ -6,7 +6,7 @@ class GetAdminsUseCase {
 
   GetAdminsUseCase(this.repository);
 
-  Future<ApiResponse> call() {
-    return repository.getAdmins();
+  Future<ApiResponse> call({int page = 1, int limit = 10}) {
+    return repository.getAdmins(page: page, limit: limit);
   }
 }

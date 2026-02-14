@@ -8,22 +8,31 @@ class OwnerGraphCubit extends Cubit<OwnerGraphState> {
 
   OwnerGraphCubit(this._getOwnerGraphUseCase) : super(OwnerGraphInitial());
 
+  bool isAccumulative = false;
+  String currentFilter = 'weekly';
+  String currentResource = 'transactions_amount';
+
   Future<void> getOwnerGraph({
     required String id,
-    String resource = 'transactions_amount',
-    String filter = 'weekly',
+    String? resource,
+    String? filter,
+    bool? accumulative,
   }) async {
+    if (resource != null) currentResource = resource;
+    if (filter != null) currentFilter = filter;
+    if (accumulative != null) isAccumulative = accumulative;
+
     emit(OwnerGraphLoading());
     try {
       final response = await _getOwnerGraphUseCase(
         id: id,
-        resource: resource,
-        filter: filter,
+        resource: currentResource,
+        filter: currentFilter,
+        accumulative: isAccumulative,
       );
       if (response.isSuccess && response.data != null) {
-        final responseData = response.data;
-        final innerData = (responseData is Map<String, dynamic> &&
-                responseData.containsKey('data'))
+        final Map<String, dynamic> responseData = response.data;
+        final innerData = responseData.containsKey('data')
             ? responseData['data']
             : responseData;
         final graphData =
@@ -35,5 +44,17 @@ class OwnerGraphCubit extends Cubit<OwnerGraphState> {
     } catch (e) {
       emit(OwnerGraphFailure(e.toString()));
     }
+  }
+
+  void toggleAccumulative(String id) {
+    getOwnerGraph(id: id, accumulative: !isAccumulative);
+  }
+
+  void updateFilter(String id, String filter) {
+    getOwnerGraph(id: id, filter: filter);
+  }
+
+  void updateResource(String id, String resource) {
+    getOwnerGraph(id: id, resource: resource);
   }
 }

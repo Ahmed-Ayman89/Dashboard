@@ -21,6 +21,7 @@ class DashboardRemoteDataSource {
   Future<ApiResponse> getGraphData({
     required String filter,
     required String resource,
+    bool accumulative = false,
     String? from,
     String? to,
   }) async {
@@ -28,6 +29,7 @@ class DashboardRemoteDataSource {
       final queryParams = {
         'filter': filter,
         'resource': resource,
+        'accumulative': accumulative,
         if (from != null) 'from': from,
         if (to != null) 'to': to,
       };

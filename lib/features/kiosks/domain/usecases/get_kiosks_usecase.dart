@@ -6,7 +6,17 @@ class GetKiosksUseCase {
 
   GetKiosksUseCase(this._repository);
 
-  Future<ApiResponse> call({int page = 1, int limit = 10}) async {
-    return await _repository.getKiosks(page: page, limit: limit);
+  Future<ApiResponse> call({
+    int page = 1,
+    int limit = 10,
+    String search = '',
+    String? status,
+  }) async {
+    return await _repository.getKiosks(
+      page: page,
+      limit: limit,
+      search: search,
+      status: status,
+    );
   }
 }

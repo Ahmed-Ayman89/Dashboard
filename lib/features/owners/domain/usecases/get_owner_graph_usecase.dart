@@ -10,11 +10,13 @@ class GetOwnerGraphUseCase {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = false,
   }) async {
     return await _repository.getOwnerGraph(
       id: id,
       resource: resource,
       filter: filter,
+      accumulative: accumulative,
     );
   }
 }

@@ -10,73 +10,50 @@ class OwnersCubit extends Cubit<OwnersState> {
 
   OwnersCubit(this.getOwnersUseCase) : super(OwnersInitial());
 
-  int _currentPage = 1;
-  final int _limit = 10;
-  List<OwnerModel> _allOwners = [];
-  bool _hasReachedMax = false;
   String _currentStatus = 'All';
   String _currentSearch = '';
 
   Future<void> getOwners({
-    bool refresh = false,
+    int page = 1,
+    int limit = 10,
     String search = '',
     String? status,
   }) async {
-    if (refresh) {
-      _currentPage = 1;
-      _allOwners = [];
-      _hasReachedMax = false;
-      _currentSearch = search;
-      if (status != null) _currentStatus = status;
-      emit(OwnersLoading());
-    } else {
-      if (_allOwners.isEmpty) {
-        emit(OwnersLoading());
-      } else if (_hasReachedMax) {
-        return;
-      } else {
-        emit(OwnersLoaded(
-          owners: _allOwners,
-          total: 0,
-          page: _currentPage,
-          hasReachedMax: _hasReachedMax,
-          isFetchingMore: true,
-        ));
-      }
-    }
+    _currentSearch = search;
+    if (status != null) _currentStatus = status;
+
+    emit(OwnersLoading());
 
     final response = await getOwnersUseCase(
-      page: _currentPage,
-      limit: _limit,
+      page: page,
+      limit: limit,
       search: _currentSearch,
       status: _currentStatus,
     );
 
     if (isClosed) return;
 
-    if (response.error == null) {
-      final data = response.data['data'];
-      final List<dynamic> ownersJson = data['owners'];
-      final totalinfo = data['total'];
+    if (response.error == null && response.data != null) {
+      final Map<String, dynamic> responseData = response.data;
 
-      final newOwners = ownersJson.map((e) => OwnerModel.fromJson(e)).toList();
+      // Handle the nested structure: { "data": { "owners": [...], "total": 22, ... } }
+      final Map<String, dynamic> data = responseData.containsKey('data')
+          ? responseData['data']
+          : responseData;
 
-      if (refresh) {
-        _allOwners = newOwners;
-      } else {
-        _allOwners.addAll(newOwners);
-      }
+      final List<dynamic> ownersJson = data['owners'] ?? [];
+      final int total = data['total'] ?? 0;
+      final int responsePage = data['page'] ?? page;
+      final int responseLimit = data['limit'] ?? limit;
 
-      _hasReachedMax = newOwners.length < _limit;
-      if (!_hasReachedMax) {
-        _currentPage++;
-      }
+      final owners = ownersJson.map((e) => OwnerModel.fromJson(e)).toList();
 
       emit(OwnersLoaded(
-        owners: _allOwners,
-        total: totalinfo,
-        page: _currentPage - 1,
-        hasReachedMax: _hasReachedMax,
+        owners: owners,
+        total: total,
+        page: responsePage,
+        limit: responseLimit,
+        hasReachedMax: owners.length < responseLimit,
         isFetchingMore: false,
       ));
     } else {

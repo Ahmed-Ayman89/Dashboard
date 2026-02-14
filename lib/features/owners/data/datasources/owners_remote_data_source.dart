@@ -65,6 +65,7 @@ class OwnersRemoteDataSource {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = false,
   }) async {
     try {
       final response = await APIHelper().getRequest(
@@ -72,6 +73,7 @@ class OwnersRemoteDataSource {
         queryParameters: {
           'resource': resource,
           'filter': filter,
+          'accumulative': accumulative,
         },
       );
       return response;

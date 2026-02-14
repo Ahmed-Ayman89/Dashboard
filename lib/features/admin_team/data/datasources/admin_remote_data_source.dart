@@ -3,10 +3,14 @@ import '../../../../core/network/api_endpoiont.dart';
 import '../../../../core/network/api_response.dart';
 
 class AdminRemoteDataSource {
-  Future<ApiResponse> getAdmins() async {
+  Future<ApiResponse> getAdmins({int page = 1, int limit = 10}) async {
     try {
       final response = await APIHelper().getRequest(
         endPoint: EndPoints.adminTeam,
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+        },
       );
       return response;
     } catch (e) {

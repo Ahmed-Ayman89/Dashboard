@@ -6,9 +6,9 @@ class AdminRepositoryImpl implements AdminRepository {
   final AdminRemoteDataSource _remoteDataSource = AdminRemoteDataSource();
 
   @override
-  Future<ApiResponse> getAdmins() async {
+  Future<ApiResponse> getAdmins({int page = 1, int limit = 10}) async {
     try {
-      return await _remoteDataSource.getAdmins();
+      return await _remoteDataSource.getAdmins(page: page, limit: limit);
     } catch (e) {
       return ApiResponse.error(message: e.toString());
     }

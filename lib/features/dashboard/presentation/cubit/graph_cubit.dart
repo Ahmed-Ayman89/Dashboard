@@ -5,8 +5,9 @@ import 'graph_state.dart';
 class GraphCubit extends Cubit<GraphState> {
   final GetGraphDataUseCase getGraphDataUseCase;
 
-  String currentFilter = 'weekly';
+  String currentFilter = '7d';
   String currentResource = 'transactions';
+  bool isAccumulative = false;
   String? customFromDate;
   String? customToDate;
 
@@ -15,12 +16,14 @@ class GraphCubit extends Cubit<GraphState> {
   Future<void> loadGraphData({
     String? filter,
     String? resource,
+    bool? accumulative,
     String? from,
     String? to,
   }) async {
     // Update current values if provided
     if (filter != null) currentFilter = filter;
     if (resource != null) currentResource = resource;
+    if (accumulative != null) isAccumulative = accumulative;
     if (from != null) customFromDate = from;
     if (to != null) customToDate = to;
 
@@ -29,6 +32,7 @@ class GraphCubit extends Cubit<GraphState> {
     final result = await getGraphDataUseCase(
       filter: currentFilter,
       resource: currentResource,
+      accumulative: isAccumulative,
       from: customFromDate,
       to: customToDate,
     );
@@ -45,6 +49,10 @@ class GraphCubit extends Cubit<GraphState> {
 
   void updateResource(String newResource) {
     loadGraphData(resource: newResource);
+  }
+
+  void toggleAccumulative(bool value) {
+    loadGraphData(accumulative: value);
   }
 
   void updateCustomDateRange(String fromDate, String toDate) {

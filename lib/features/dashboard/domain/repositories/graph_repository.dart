@@ -6,6 +6,7 @@ abstract class GraphRepository {
   Future<Either<Failure, GraphEntity>> getGraphData({
     required String filter,
     required String resource,
+    bool accumulative = false,
     String? from,
     String? to,
   });

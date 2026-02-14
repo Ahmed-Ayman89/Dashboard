@@ -6,9 +6,19 @@ class KiosksRepositoryImpl implements KiosksRepository {
   final KiosksRemoteDataSource _remoteDataSource = KiosksRemoteDataSource();
 
   @override
-  Future<ApiResponse> getKiosks({int page = 1, int limit = 10}) async {
+  Future<ApiResponse> getKiosks({
+    int page = 1,
+    int limit = 10,
+    String search = '',
+    String? status,
+  }) async {
     try {
-      return await _remoteDataSource.getKiosks(page: page, limit: limit);
+      return await _remoteDataSource.getKiosks(
+        page: page,
+        limit: limit,
+        search: search,
+        status: status,
+      );
     } catch (e) {
       return ApiResponse.error(message: e.toString());
     }

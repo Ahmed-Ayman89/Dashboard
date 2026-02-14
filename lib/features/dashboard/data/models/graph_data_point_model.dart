@@ -21,11 +21,16 @@ class GraphDataPointModel extends Equatable {
     final dateStr = json['date'] as String?;
     final parsedDate = dateStr != null ? DateTime.tryParse(dateStr) : null;
 
-    // Generate label from date
-    String label = '';
-    if (parsedDate != null) {
-      // Format as short day name (Mon, Tue, etc.)
+    // Use label from JSON if available, otherwise try period, otherwise fall back to date formatting
+    String label = json['label'] as String? ?? json['period'] as String? ?? '';
+
+    if (label.isEmpty && parsedDate != null) {
+      // If we still don't have a label but have a date, format it
+      // Defaulting to day name for weekly, but we could be smarter here if we had the filter
       label = DateFormat('EEE').format(parsedDate);
+    } else if (label.isEmpty && dateStr != null) {
+      // If date parsing failed but we have a raw date string, use it as label
+      label = dateStr;
     }
 
     // Get count and volume

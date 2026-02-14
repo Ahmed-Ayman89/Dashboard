@@ -1,7 +1,12 @@
 import '../../../../core/network/api_response.dart';
 
 abstract class KiosksRepository {
-  Future<ApiResponse> getKiosks({int page = 1, int limit = 10});
+  Future<ApiResponse> getKiosks({
+    int page = 1,
+    int limit = 10,
+    String search = '',
+    String? status,
+  });
   Future<ApiResponse> getKioskDetails(String id);
   Future<ApiResponse> updateKiosk(String id, Map<String, dynamic> data);
   Future<ApiResponse> changeKioskStatus(

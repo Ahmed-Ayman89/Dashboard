@@ -99,48 +99,53 @@ class _AdminTeamView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.neutral200),
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowColor:
-                              MaterialStateProperty.all(AppColors.neutral100),
-                          columns: [
-                            DataColumn(
-                                label: Text('Name',
-                                    style: AppTextStyle.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                                label: Text('Phone',
-                                    style: AppTextStyle.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                                label: Text('Role',
-                                    style: AppTextStyle.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                                label: Text('Status',
-                                    style: AppTextStyle.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                                label: Text('Joined Date',
-                                    style: AppTextStyle.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.bold))),
-                          ],
-                          rows: state.admins.map((admin) {
-                            return DataRow(cells: [
-                              DataCell(Text(admin.fullName,
-                                  style: AppTextStyle.bodyRegular)),
-                              DataCell(Text(admin.phone,
-                                  style: AppTextStyle.bodyRegular)),
-                              DataCell(_buildRoleBadge(admin.adminRole)),
-                              DataCell(_buildStatusBadge(admin.status)),
-                              DataCell(Text(
-                                  DateFormat('MMM d, yyyy')
-                                      .format(admin.createdAt),
-                                  style: AppTextStyle.bodyRegular)),
-                            ]);
-                          }).toList(),
-                        ),
+                      child: Column(
+                        children: [
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              headingRowColor: MaterialStateProperty.all(
+                                  AppColors.neutral100),
+                              columns: [
+                                DataColumn(
+                                    label: Text('Name',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
+                                DataColumn(
+                                    label: Text('Phone',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
+                                DataColumn(
+                                    label: Text('Role',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
+                                DataColumn(
+                                    label: Text('Status',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
+                                DataColumn(
+                                    label: Text('Joined Date',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
+                              ],
+                              rows: state.admins.map((admin) {
+                                return DataRow(cells: [
+                                  DataCell(Text(admin.fullName,
+                                      style: AppTextStyle.bodyRegular)),
+                                  DataCell(Text(admin.phone,
+                                      style: AppTextStyle.bodyRegular)),
+                                  DataCell(_buildRoleBadge(admin.adminRole)),
+                                  DataCell(_buildStatusBadge(admin.status)),
+                                  DataCell(Text(
+                                      DateFormat('MMM d, yyyy')
+                                          .format(admin.createdAt),
+                                      style: AppTextStyle.bodyRegular)),
+                                ]);
+                              }).toList(),
+                            ),
+                          ),
+                          _buildPagination(context, state),
+                        ],
                       ),
                     ),
                 ],
@@ -172,6 +177,50 @@ class _AdminTeamView extends StatelessWidget {
       builder: (_) => BlocProvider.value(
         value: context.read<AdminTeamCubit>(),
         child: const AddAdminDialog(),
+      ),
+    );
+  }
+
+  Widget _buildPagination(BuildContext context, AdminTeamLoaded state) {
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} members',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () => context
+                        .read<AdminTeamCubit>()
+                        .getAdmins(page: state.page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () => context
+                        .read<AdminTeamCubit>()
+                        .getAdmins(page: state.page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

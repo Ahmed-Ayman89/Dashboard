@@ -3,13 +3,20 @@ import '../../../../core/network/api_endpoiont.dart';
 import '../../../../core/network/api_response.dart';
 
 class KiosksRemoteDataSource {
-  Future<ApiResponse> getKiosks({int page = 1, int limit = 10}) async {
+  Future<ApiResponse> getKiosks({
+    int page = 1,
+    int limit = 10,
+    String search = '',
+    String? status,
+  }) async {
     try {
       final response = await APIHelper().getRequest(
         endPoint: EndPoints.adminKiosks,
         queryParameters: {
           'page': page,
           'limit': limit,
+          if (search.isNotEmpty) 'search': search,
+          if (status != null && status.isNotEmpty) 'status': status,
         },
       );
       return response;

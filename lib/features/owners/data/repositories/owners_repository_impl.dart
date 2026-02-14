@@ -55,12 +55,14 @@ class OwnersRepositoryImpl implements OwnersRepository {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = false,
   }) async {
     try {
       return await _remoteDataSource.getOwnerGraph(
         id: id,
         resource: resource,
         filter: filter,
+        accumulative: accumulative,
       );
     } catch (e) {
       return ApiResponse.error(message: e.toString());

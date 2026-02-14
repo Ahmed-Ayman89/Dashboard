@@ -20,5 +20,6 @@ abstract class OwnersRepository {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = false,
   });
 }

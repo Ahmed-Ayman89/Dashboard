@@ -15,10 +15,17 @@ class FilteredAnalyticsChart extends StatefulWidget {
 }
 
 class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
-  String selectedFilter = 'weekly';
+  String selectedFilter = '7d';
   String selectedResource = 'transactions';
 
-  final List<String> filters = ['weekly', 'monthly', 'yearly', 'custom'];
+  final List<Map<String, String>> filters = [
+    {'label': 'Daily', 'value': '1d'},
+    {'label': 'Weekly', 'value': '7d'},
+    {'label': 'Monthly', 'value': '30d'},
+    {'label': 'Yearly', 'value': '365d'},
+    {'label': 'All', 'value': 'all'},
+    {'label': 'Custom', 'value': 'custom'},
+  ];
   final List<Map<String, String>> resources = [
     {'value': 'transactions', 'label': 'Transactions'},
     {'value': 'kiosks', 'label': 'Kiosks'},
@@ -65,6 +72,8 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(isMobile),
+          const SizedBox(height: 16),
+          _buildAccumulativeToggle(),
           const SizedBox(height: 16),
           _buildFilters(isMobile),
           const SizedBox(height: 24),
@@ -133,19 +142,50 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
     );
   }
 
+  Widget _buildAccumulativeToggle() {
+    return BlocBuilder<GraphCubit, GraphState>(
+      buildWhen: (previous, current) => current is! GraphLoading,
+      builder: (context, state) {
+        final cubit = context.read<GraphCubit>();
+        return Row(
+          children: [
+            SizedBox(
+              height: 24,
+              child: Switch(
+                value: cubit.isAccumulative,
+                activeColor: AppColors.brandPrimary,
+                onChanged: (value) {
+                  cubit.toggleAccumulative(value);
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Accumulative Data',
+              style: AppTextStyle.bodySmall.copyWith(
+                fontWeight: FontWeight.w500,
+                color: AppColors.neutral700,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildFilters(bool isMobile) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: filters.map((filter) {
-        final isSelected = selectedFilter == filter;
+        final isSelected = selectedFilter == filter['value'];
         return InkWell(
           onTap: () {
-            setState(() => selectedFilter = filter);
-            if (filter == 'custom') {
+            setState(() => selectedFilter = filter['value']!);
+            if (filter['value'] == 'custom') {
               _showCustomDatePicker();
             } else {
-              context.read<GraphCubit>().updateFilter(filter);
+              context.read<GraphCubit>().updateFilter(filter['value']!);
             }
           },
           borderRadius: BorderRadius.circular(20),
@@ -159,7 +199,7 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
               ),
             ),
             child: Text(
-              filter[0].toUpperCase() + filter.substring(1),
+              filter['label']!,
               style: AppTextStyle.bodySmall.copyWith(
                 color: isSelected ? AppColors.white : AppColors.neutral700,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -315,14 +355,17 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      interval: 1,
+                      interval: (labels.length / 5).ceilToDouble(),
                       getTitlesWidget: (value, meta) {
                         int index = value.toInt();
                         if (index >= 0 && index < labels.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(labels[index],
-                                style: AppTextStyle.caption),
+                          return SideTitleWidget(
+                            meta: meta,
+                            space: 8,
+                            child: Text(
+                              labels[index],
+                              style: AppTextStyle.caption,
+                            ),
                           );
                         }
                         return const SizedBox();

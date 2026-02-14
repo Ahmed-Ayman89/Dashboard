@@ -30,11 +30,13 @@ class OwnerGraphDataPoint {
   final DateTime date;
   final int count;
   final double volume;
+  final String label;
 
   OwnerGraphDataPoint({
     required this.date,
     required this.count,
     required this.volume,
+    required this.label,
   });
 
   factory OwnerGraphDataPoint.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class OwnerGraphDataPoint {
       date: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
       count: json['count'] ?? 0,
       volume: double.tryParse(json['volume']?.toString() ?? '0') ?? 0.0,
+      label: json['label'] ?? json['period'] ?? '',
     );
   }
 }

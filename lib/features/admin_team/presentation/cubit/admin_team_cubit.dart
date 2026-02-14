@@ -11,24 +11,36 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
   AdminTeamCubit(this._getAdminsUseCase, this._createAdminUseCase)
       : super(AdminTeamInitial());
 
-  Future<void> getAdmins() async {
+  Future<void> getAdmins({int page = 1, int limit = 10}) async {
     emit(AdminTeamLoading());
     try {
-      final response = await _getAdminsUseCase();
+      final response = await _getAdminsUseCase(page: page, limit: limit);
       if (isClosed) return;
       if (response.isSuccess && response.data != null) {
-        final responseData = response.data;
-        // Handle data wrapper if present
-        final innerData = (responseData is Map<String, dynamic> &&
-                responseData.containsKey('data'))
+        final Map<String, dynamic> responseData = response.data;
+
+        // The API response for admins is:
+        // { "success": true, ..., "data": { "admins": [...], "total": 4, "page": 1, "limit": 10 } }
+
+        final Map<String, dynamic> innerData = responseData.containsKey('data')
             ? responseData['data']
             : responseData;
 
-        final List<AdminUser> admins = (innerData as List)
+        final List<dynamic> adminsList = innerData['admins'] as List? ?? [];
+        final int total = innerData['total'] ?? 0;
+        final int currentPage = innerData['page'] ?? 1;
+        final int currentLimit = innerData['limit'] ?? 10;
+
+        final List<AdminUser> admins = adminsList
             .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
             .toList();
 
-        emit(AdminTeamLoaded(admins));
+        emit(AdminTeamLoaded(
+          admins: admins,
+          total: total,
+          page: currentPage,
+          limit: currentLimit,
+        ));
       } else {
         emit(AdminTeamFailure(response.message ?? 'Failed to load admins'));
       }

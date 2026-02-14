@@ -90,14 +90,19 @@ class AnalyticsChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      interval: 1,
+                      interval: (xAxisLabels.length > 10)
+                          ? (xAxisLabels.length / 6).ceilToDouble()
+                          : 1,
                       getTitlesWidget: (value, meta) {
                         int index = value.toInt();
                         if (index >= 0 && index < xAxisLabels.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(xAxisLabels[index],
-                                style: AppTextStyle.caption),
+                          return SideTitleWidget(
+                            meta: meta,
+                            space: 8,
+                            child: Text(
+                              xAxisLabels[index],
+                              style: AppTextStyle.caption,
+                            ),
                           );
                         }
                         return const SizedBox();
@@ -108,7 +113,10 @@ class AnalyticsChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
+                      interval: _calculateLeftInterval(),
                       getTitlesWidget: (value, meta) {
+                        // Only show whole numbers to avoid overlapping zeros
+                        if (value % 1 != 0) return const SizedBox();
                         return Text(
                           value.toInt().toString(),
                           style: AppTextStyle.caption,
@@ -157,5 +165,16 @@ class AnalyticsChart extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  double _calculateLeftInterval() {
+    if (spots.isEmpty) return 1.0;
+    double maxY = 0;
+    for (final spot in spots) {
+      if (spot.y > maxY) maxY = spot.y;
+    }
+    if (maxY == 0) return 1.0;
+    // Aim for ~5-6 intervals
+    return (maxY / 5).ceilToDouble();
   }
 }

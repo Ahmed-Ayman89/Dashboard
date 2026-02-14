@@ -31,33 +31,12 @@ class _OwnersView extends StatefulWidget {
 }
 
 class _OwnersViewState extends State<_OwnersView> {
-  final _scrollController = ScrollController();
   final _searchController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_isBottom) {
-      context.read<OwnersCubit>().getOwners();
-    }
-  }
-
-  bool get _isBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9);
   }
 
   @override
@@ -113,11 +92,7 @@ class _OwnersViewState extends State<_OwnersView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildTable(context, state.owners),
-                          if (state.isFetchingMore)
-                            const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
+                          _buildPagination(context, state),
                         ],
                       );
                     }
@@ -179,9 +154,7 @@ class _OwnersViewState extends State<_OwnersView> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                 ),
                 onSubmitted: (value) {
-                  context
-                      .read<OwnersCubit>()
-                      .getOwners(refresh: true, search: value);
+                  context.read<OwnersCubit>().getOwners(page: 1, search: value);
                 },
               ),
             ),
@@ -214,6 +187,52 @@ class _OwnersViewState extends State<_OwnersView> {
     );
   }
 
+  Widget _buildPagination(BuildContext context, OwnersLoaded state) {
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} owners',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () => context.read<OwnersCubit>().getOwners(
+                          page: state.page - 1,
+                          limit: state.limit,
+                        )
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () => context.read<OwnersCubit>().getOwners(
+                          page: state.page + 1,
+                          limit: state.limit,
+                        )
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFilterChip(BuildContext context, String label, Color? color) {
     return BlocBuilder<OwnersCubit, OwnersState>(
       builder: (context, state) {
@@ -222,9 +241,7 @@ class _OwnersViewState extends State<_OwnersView> {
             String status = label;
             if (label == 'Active') status = 'APPROVED';
 
-            context
-                .read<OwnersCubit>()
-                .getOwners(refresh: true, status: status);
+            context.read<OwnersCubit>().getOwners(page: 1, status: status);
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

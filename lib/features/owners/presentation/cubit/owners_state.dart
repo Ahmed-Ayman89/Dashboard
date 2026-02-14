@@ -16,6 +16,7 @@ class OwnersLoaded extends OwnersState {
   final int total;
   final int page;
   final bool hasReachedMax;
+  final int limit;
   final bool isFetchingMore;
 
   const OwnersLoaded({
@@ -23,12 +24,13 @@ class OwnersLoaded extends OwnersState {
     required this.total,
     required this.page,
     required this.hasReachedMax,
+    required this.limit,
     this.isFetchingMore = false,
   });
 
   @override
   List<Object> get props =>
-      [owners, total, page, hasReachedMax, isFetchingMore];
+      [owners, total, page, hasReachedMax, limit, isFetchingMore];
 }
 
 class OwnersFailure extends OwnersState {
