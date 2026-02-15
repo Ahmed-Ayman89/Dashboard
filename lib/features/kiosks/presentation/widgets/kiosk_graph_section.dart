@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/helper/app_text_style.dart';
 import '../../../dashboard/presentation/widgets/analytics_chart.dart';
 import '../cubit/kiosk_graph_cubit.dart';
 import '../cubit/kiosk_graph_state.dart';
@@ -18,6 +18,8 @@ class KioskGraphSection extends StatefulWidget {
 
 class _KioskGraphSectionState extends State<KioskGraphSection> {
   String _selectedFilter = '7d';
+  String _selectedResource = 'commission_earned';
+  bool _isAccumulative = true;
 
   @override
   void initState() {
@@ -28,7 +30,9 @@ class _KioskGraphSectionState extends State<KioskGraphSection> {
   void _fetchGraph() {
     context.read<KioskGraphCubit>().getKioskGraph(
           id: widget.kioskId,
+          resource: _selectedResource,
           filter: _selectedFilter,
+          accumulative: _isAccumulative,
         );
   }
 
@@ -36,36 +40,162 @@ class _KioskGraphSectionState extends State<KioskGraphSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<KioskGraphCubit, KioskGraphState>(
       builder: (context, state) {
-        if (state is KioskGraphLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is KioskGraphFailure) {
-          return Center(child: Text('Error: ${state.message}'));
-        } else if (state is KioskGraphLoaded) {
-          final data = state.graphData.data;
-
-          // Map data to FlSpots
-          List<FlSpot> spots = [];
-          List<String> xAxisLabels = [];
-
-          for (int i = 0; i < data.length; i++) {
-            spots.add(FlSpot(i.toDouble(), data[i].volume));
-            xAxisLabels.add(DateFormat('MM/dd').format(data[i].date));
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AnalyticsChart(
-                title: 'Commission Earned (${state.graphData.period})',
-                spots: spots,
-                xAxisLabels: xAxisLabels,
-                chartColor: AppColors.brandPrimary,
-              ),
-            ],
-          );
-        }
-        return const SizedBox();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildFilters(),
+            const SizedBox(height: 16),
+            if (state is KioskGraphLoading)
+              const SizedBox(
+                height: 300,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (state is KioskGraphFailure)
+              SizedBox(
+                height: 300,
+                child: Center(child: Text('Error: ${state.message}')),
+              )
+            else if (state is KioskGraphLoaded)
+              _buildChart(state),
+            const SizedBox(height: 16),
+          ],
+        );
       },
+    );
+  }
+
+  Widget _buildFilters() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildResourceDropdown(),
+            ),
+            const SizedBox(width: 16),
+            _buildAccumulativeToggle(),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTimeFilters(),
+      ],
+    );
+  }
+
+  Widget _buildResourceDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.neutral300),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedResource,
+          isExpanded: true,
+          items: const [
+            DropdownMenuItem(
+              value: 'transactions_count',
+              child: Text('Transactions Count'),
+            ),
+            DropdownMenuItem(
+              value: 'transactions_amount',
+              child: Text('Transactions Amount'),
+            ),
+            DropdownMenuItem(
+              value: 'commission_earned',
+              child: Text('Commission Earned'),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => _selectedResource = value);
+              _fetchGraph();
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccumulativeToggle() {
+    return Row(
+      children: [
+        Checkbox(
+          value: _isAccumulative,
+          activeColor: AppColors.brandPrimary,
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => _isAccumulative = value);
+              _fetchGraph();
+            }
+          },
+        ),
+        Text('Accumulative', style: AppTextStyle.bodySmall),
+      ],
+    );
+  }
+
+  Widget _buildTimeFilters() {
+    final filters = [
+      '1d',
+      'last day',
+      '3d',
+      '7d',
+      'weekly',
+      '30d',
+      'monthly',
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((filter) {
+          final isSelected = _selectedFilter == filter;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(filter),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _selectedFilter = filter);
+                  _fetchGraph();
+                }
+              },
+              selectedColor: AppColors.brandPrimary,
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.white : AppColors.textPrimary,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildChart(KioskGraphLoaded state) {
+    final data = state.graphData.data;
+    List<FlSpot> spots = [];
+    List<String> xAxisLabels = [];
+
+    for (int i = 0; i < data.length; i++) {
+      spots.add(FlSpot(i.toDouble(), data[i].volume));
+      xAxisLabels.add(data[i].label);
+    }
+
+    String title = 'Graph';
+    if (_selectedResource == 'transactions_count') title = 'Transactions Count';
+    if (_selectedResource == 'transactions_amount')
+      title = 'Transactions Amount';
+    if (_selectedResource == 'commission_earned') title = 'Commission Earned';
+
+    return AnalyticsChart(
+      title: '$title (${state.graphData.period})',
+      spots: spots,
+      xAxisLabels: xAxisLabels,
+      chartColor: AppColors.brandPrimary,
     );
   }
 }

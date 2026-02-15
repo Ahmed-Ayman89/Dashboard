@@ -12,6 +12,7 @@ class WorkerGraphCubit extends Cubit<WorkerGraphState> {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = true,
   }) async {
     emit(WorkerGraphLoading());
     try {
@@ -19,6 +20,7 @@ class WorkerGraphCubit extends Cubit<WorkerGraphState> {
         id: id,
         resource: resource,
         filter: filter,
+        accumulative: accumulative,
       );
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;

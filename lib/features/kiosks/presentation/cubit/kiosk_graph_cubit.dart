@@ -12,6 +12,7 @@ class KioskGraphCubit extends Cubit<KioskGraphState> {
     required String id,
     String resource = 'commission_earned',
     String filter = '7d',
+    bool accumulative = true,
   }) async {
     emit(KioskGraphLoading());
     try {
@@ -19,6 +20,7 @@ class KioskGraphCubit extends Cubit<KioskGraphState> {
         id: id,
         resource: resource,
         filter: filter,
+        accumulative: accumulative,
       );
       if (response.isSuccess && response.data != null) {
         final responseData = response.data;

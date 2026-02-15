@@ -4,7 +4,7 @@ import 'package:dashboard_grow/features/dues/data/models/due_model.dart';
 import 'package:dashboard_grow/features/dues/data/models/dues_dashboard_model.dart';
 
 abstract class DuesRemoteDataSource {
-  Future<DueResponseModel> getDues();
+  Future<DueResponseModel> getDues({int page = 1, int limit = 10});
   Future<DuesDashboardResponse> getDuesDashboard();
   Future<void> collectDue(String dueId, double amount);
 }
@@ -15,8 +15,14 @@ class DuesRemoteDataSourceImpl implements DuesRemoteDataSource {
   DuesRemoteDataSourceImpl({required this.apiHelper});
 
   @override
-  Future<DueResponseModel> getDues() async {
-    final response = await apiHelper.getRequest(endPoint: EndPoints.dues);
+  Future<DueResponseModel> getDues({int page = 1, int limit = 10}) async {
+    final response = await apiHelper.getRequest(
+      endPoint: EndPoints.dues,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
     return DueResponseModel.fromJson(response.data);
   }
 

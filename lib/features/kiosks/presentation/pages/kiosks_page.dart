@@ -179,62 +179,69 @@ class _KiosksView extends StatelessWidget {
                       scrollDirection: Axis.vertical,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          showCheckboxColumn: false,
-                          headingRowColor:
-                              WidgetStateProperty.all(AppColors.neutral100),
-                          columns: const [
-                            DataColumn(label: Text('Kiosk Name')),
-                            DataColumn(label: Text('Owner')),
-                            DataColumn(label: Text('Location')),
-                            DataColumn(label: Text('Daily TX')),
-                            DataColumn(label: Text('Dues')),
-                            DataColumn(label: Text('Status')),
-                          ],
-                          rows: state.kiosks.map((kiosk) {
-                            return DataRow(
-                                onSelectChanged: (_) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          KioskDetailsPage(kioskId: kiosk.id),
-                                    ),
-                                  );
-                                },
-                                cells: [
-                                  DataCell(Text(kiosk.name,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                                  DataCell(Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(kiosk.owner.fullName),
-                                      Text(kiosk.owner.phone,
-                                          style: AppTextStyle.caption),
-                                    ],
-                                  )),
-                                  DataCell(Text(kiosk.location ?? 'N/A')),
-                                  DataCell(
-                                      Text(kiosk.dailyTransactions.toString())),
-                                  DataCell(
-                                    Text(
-                                      '${kiosk.pendingDues.toStringAsFixed(0)} EGP',
-                                      style: TextStyle(
-                                        color: kiosk.pendingDues > 1000
-                                            ? AppColors.error
-                                            : AppColors.textPrimary,
-                                        fontWeight: kiosk.pendingDues > 1000
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: MediaQuery.of(context).size.width - 64,
+                          ),
+                          child: DataTable(
+                            showCheckboxColumn: false,
+                            headingRowColor:
+                                WidgetStateProperty.all(AppColors.neutral100),
+                            columns: const [
+                              DataColumn(label: Text('Kiosk Name')),
+                              DataColumn(label: Text('Owner')),
+                              DataColumn(label: Text('Location')),
+                              DataColumn(label: Text('Daily TX')),
+                              DataColumn(label: Text('Dues')),
+                              DataColumn(label: Text('Status')),
+                            ],
+                            rows: state.kiosks.map((kiosk) {
+                              return DataRow(
+                                  onSelectChanged: (_) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            KioskDetailsPage(kioskId: kiosk.id),
+                                      ),
+                                    );
+                                  },
+                                  cells: [
+                                    DataCell(Text(kiosk.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold))),
+                                    DataCell(Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(kiosk.owner.fullName),
+                                        Text(kiosk.owner.phone,
+                                            style: AppTextStyle.caption),
+                                      ],
+                                    )),
+                                    DataCell(Text(kiosk.location ?? 'N/A')),
+                                    DataCell(Text(
+                                        kiosk.dailyTransactions.toString())),
+                                    DataCell(
+                                      Text(
+                                        '${kiosk.pendingDues.toStringAsFixed(0)} EGP',
+                                        style: TextStyle(
+                                          color: kiosk.pendingDues > 1000
+                                              ? AppColors.error
+                                              : AppColors.textPrimary,
+                                          fontWeight: kiosk.pendingDues > 1000
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  DataCell(_buildStatusBadge(!kiosk.isActive)),
-                                ]);
-                          }).toList(),
+                                    DataCell(
+                                        _buildStatusBadge(!kiosk.isActive)),
+                                  ]);
+                            }).toList(),
+                          ),
                         ),
                       ),
                     ),

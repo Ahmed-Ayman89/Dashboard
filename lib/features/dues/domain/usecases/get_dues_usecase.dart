@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dashboard_grow/core/error/failures.dart';
-import 'package:dashboard_grow/features/dues/domain/entities/due.dart';
+import 'package:dashboard_grow/features/dues/data/models/due_model.dart';
 import 'package:dashboard_grow/features/dues/domain/repositories/dues_repository.dart';
 
 class GetDuesUseCase {
@@ -8,7 +8,10 @@ class GetDuesUseCase {
 
   GetDuesUseCase({required this.repository});
 
-  Future<Either<Failure, List<Due>>> call() async {
-    return await repository.getDues();
+  Future<Either<Failure, DueResponseModel>> call({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return await repository.getDues(page: page, limit: limit);
   }
 }

@@ -38,17 +38,19 @@ class _WorkersViewState extends State<_WorkersView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF8FAFC),
-      body: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Worker Management', style: AppTextStyle.heading1),
-            const SizedBox(height: 32),
-            _buildFilters(context),
-            const SizedBox(height: 24),
-            Expanded(child: _buildWorkersTable()),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Worker Management', style: AppTextStyle.heading1),
+              const SizedBox(height: 32),
+              _buildFilters(context),
+              const SizedBox(height: 24),
+              _buildWorkersTable(),
+            ],
+          ),
         ),
       ),
     );
@@ -107,104 +109,125 @@ class _WorkersViewState extends State<_WorkersView> {
           );
         } else if (state is WorkersLoaded) {
           if (state.workers.isEmpty) {
-            return Center(
-                child:
-                    Text('No workers found', style: AppTextStyle.bodyRegular));
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Text('No workers found'),
+              ),
+            );
           }
-          return Container(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    showCheckboxColumn: false,
-                    headingRowColor:
-                        WidgetStateProperty.all(AppColors.neutral100),
-                    columns: const [
-                      DataColumn(label: Text('Worker Info')),
-                      DataColumn(label: Text('Kiosks')),
-                      DataColumn(label: Text('Commission')),
-                      DataColumn(label: Text('Transactions')),
-                      DataColumn(label: Text('Status')),
-                      DataColumn(label: Text('Joined Date')),
-                    ],
-                    rows: state.workers.map((worker) {
-                      return DataRow(
-                        onSelectChanged: (selected) {
-                          if (selected == true) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    WorkerDetailsPage(workerId: worker.id),
-                              ),
-                            );
-                          }
-                        },
-                        cells: [
-                          DataCell(
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor:
-                                      AppColors.primary.withOpacity(0.1),
-                                  child: Text(
-                                      worker.fullName.isNotEmpty
-                                          ? worker.fullName[0]
-                                          : '?',
-                                      style: TextStyle(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.bold)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: MediaQuery.of(context).size.width - 64,
+                        ),
+                        child: DataTable(
+                          showCheckboxColumn: false,
+                          headingRowColor:
+                              WidgetStateProperty.all(AppColors.neutral100),
+                          columns: const [
+                            DataColumn(label: Text('Worker Info')),
+                            DataColumn(label: Text('Kiosks')),
+                            DataColumn(label: Text('Commission')),
+                            DataColumn(label: Text('Transactions')),
+                            DataColumn(label: Text('Status')),
+                            DataColumn(label: Text('Joined Date')),
+                          ],
+                          rows: state.workers.map((worker) {
+                            return DataRow(
+                              onSelectChanged: (selected) {
+                                if (selected == true) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WorkerDetailsPage(
+                                          workerId: worker.id),
+                                    ),
+                                  );
+                                }
+                              },
+                              cells: [
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 18,
+                                        backgroundColor:
+                                            AppColors.primary.withOpacity(0.1),
+                                        child: Text(
+                                            worker.fullName.isNotEmpty
+                                                ? worker.fullName[0]
+                                                : '?',
+                                            style: TextStyle(
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(worker.fullName,
+                                              style: AppTextStyle.bodySmall
+                                                  .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: AppColors
+                                                          .textPrimary)),
+                                          Text(worker.phone,
+                                              style: AppTextStyle.caption),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
+                                DataCell(Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(worker.fullName,
-                                        style: AppTextStyle.bodySmall.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimary)),
-                                    Text(worker.phone,
-                                        style: AppTextStyle.caption),
-                                  ],
-                                ),
+                                  children: worker.kiosks
+                                      .map((k) => Text(k.name,
+                                          style: AppTextStyle.caption))
+                                      .toList(),
+                                )),
+                                DataCell(
+                                    Text('${worker.commissionEarned} EGP')),
+                                DataCell(
+                                    Text(worker.transactionsCount.toString())),
+                                DataCell(_buildStatusBadge(worker.isActive)),
+                                DataCell(Text(DateFormat('MMM d, yyyy')
+                                    .format(worker.createdAt))),
                               ],
-                            ),
-                          ),
-                          DataCell(Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: worker.kiosks
-                                .map((k) =>
-                                    Text(k.name, style: AppTextStyle.caption))
-                                .toList(),
-                          )),
-                          DataCell(Text('${worker.commissionEarned} EGP')),
-                          DataCell(Text(worker.transactionsCount.toString())),
-                          DataCell(_buildStatusBadge(worker.isActive)),
-                          DataCell(Text(DateFormat('MMM d, yyyy')
-                              .format(worker.createdAt))),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    _buildPagination(context, state),
+                  ],
                 ),
               ),
-            ),
+            ],
           );
         }
         return const SizedBox.shrink();
@@ -226,6 +249,48 @@ class _WorkersViewState extends State<_WorkersView> {
           color: isActive ? AppColors.success : AppColors.error,
           fontWeight: FontWeight.bold,
         ),
+      ),
+    );
+  }
+
+  Widget _buildPagination(BuildContext context, WorkersLoaded state) {
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} workers',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () =>
+                        context.read<WorkersCubit>().changePage(state.page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () =>
+                        context.read<WorkersCubit>().changePage(state.page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

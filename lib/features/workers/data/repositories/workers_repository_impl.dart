@@ -34,11 +34,17 @@ class WorkersRepositoryImpl implements WorkersRepository {
   }
 
   @override
-  Future<ApiResponse> getWorkerGraph(
-      {required String id,
-      String resource = 'transactions_amount',
-      String filter = 'weekly'}) async {
+  Future<ApiResponse> getWorkerGraph({
+    required String id,
+    String resource = 'transactions_amount',
+    String filter = 'weekly',
+    bool accumulative = true,
+  }) async {
     return await _dataSource.getWorkerGraph(
-        id: id, resource: resource, filter: filter);
+      id: id,
+      resource: resource,
+      filter: filter,
+      accumulative: accumulative, // Calling data source with new parameter
+    );
   }
 }

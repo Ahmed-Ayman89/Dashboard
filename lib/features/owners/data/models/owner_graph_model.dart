@@ -44,7 +44,7 @@ class OwnerGraphDataPoint {
       date: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
       count: json['count'] ?? 0,
       volume: double.tryParse(json['volume']?.toString() ?? '0') ?? 0.0,
-      label: json['label'] ?? json['period'] ?? '',
+      label: json['date'] ?? json['label'] ?? json['period'] ?? '',
     );
   }
 }

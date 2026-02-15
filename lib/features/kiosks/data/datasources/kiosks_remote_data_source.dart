@@ -98,6 +98,7 @@ class KiosksRemoteDataSource {
     required String id,
     String resource = 'commission_earned',
     String filter = '7d',
+    bool accumulative = true,
   }) async {
     try {
       final response = await APIHelper().getRequest(
@@ -105,6 +106,7 @@ class KiosksRemoteDataSource {
         queryParameters: {
           'resource': resource,
           'filter': filter,
+          'accumulative': accumulative,
         },
       );
       return response;

@@ -18,5 +18,6 @@ abstract class KiosksRepository {
     required String id,
     String resource = 'commission_earned',
     String filter = '7d',
+    bool accumulative = true,
   });
 }

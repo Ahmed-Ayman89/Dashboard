@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dashboard_grow/core/error/failures.dart';
 import 'package:dashboard_grow/features/dues/data/datasources/dues_remote_data_source.dart';
 import 'package:dashboard_grow/features/dues/data/models/dues_dashboard_model.dart';
-import 'package:dashboard_grow/features/dues/domain/entities/due.dart';
+import 'package:dashboard_grow/features/dues/data/models/due_model.dart';
 import 'package:dashboard_grow/features/dues/domain/repositories/dues_repository.dart';
 
 class DuesRepositoryImpl implements DuesRepository {
@@ -11,10 +11,13 @@ class DuesRepositoryImpl implements DuesRepository {
   DuesRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<Due>>> getDues() async {
+  Future<Either<Failure, DueResponseModel>> getDues({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      final response = await remoteDataSource.getDues();
-      return Right(response.dueList);
+      final response = await remoteDataSource.getDues(page: page, limit: limit);
+      return Right(response);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

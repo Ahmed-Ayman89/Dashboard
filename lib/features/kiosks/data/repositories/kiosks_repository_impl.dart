@@ -76,12 +76,14 @@ class KiosksRepositoryImpl implements KiosksRepository {
     required String id,
     String resource = 'commission_earned',
     String filter = '7d',
+    bool accumulative = true,
   }) async {
     try {
       return await _remoteDataSource.getKioskGraph(
         id: id,
         resource: resource,
         filter: filter,
+        accumulative: accumulative,
       );
     } catch (e) {
       return ApiResponse.error(message: e.toString());

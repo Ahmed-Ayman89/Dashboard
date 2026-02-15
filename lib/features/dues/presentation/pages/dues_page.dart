@@ -57,6 +57,9 @@ class DuesPage extends StatelessWidget {
               return _DuesContent(
                 dues: state.dues,
                 dashboardData: state.dashboardData,
+                total: state.total,
+                page: state.page,
+                limit: state.limit,
               );
             }
             if (state is DuesActionLoading) {
@@ -74,8 +77,17 @@ class DuesPage extends StatelessWidget {
 class _DuesContent extends StatelessWidget {
   final List<Due> dues;
   final DuesDashboardModel? dashboardData;
+  final int total;
+  final int page;
+  final int limit;
 
-  const _DuesContent({required this.dues, this.dashboardData});
+  const _DuesContent({
+    required this.dues,
+    this.dashboardData,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -93,36 +105,12 @@ class _DuesContent extends StatelessWidget {
           });
     final totalOutstanding = currencyFormat.format(totalOutstandingVal);
 
-    final highRiskCount = dashboardData != null
-        ? dashboardData!.highRiskCount.toString()
-        : dues
-            .where((due) {
-              if (due.isPaid) return false;
-              final createdAt = DateTime.tryParse(due.createdAt);
-              if (createdAt == null) return false;
-              final daysSinceCreated =
-                  DateTime.now().difference(createdAt).inDays;
-              return daysSinceCreated > 30;
-            })
-            .length
-            .toString();
+    final highRiskCount =
+        dashboardData != null ? dashboardData!.highRiskCount.toString() : '0';
 
-    // Collected Today is NOT in dashboard data, calculate locally
-    final double collectedTodayVal = dues.fold<double>(0.0, (sum, due) {
-      if (due.isPaid && due.lastCollectedAt != null) {
-        final collectedAt = DateTime.tryParse(due.lastCollectedAt!);
-        if (collectedAt != null) {
-          final now = DateTime.now();
-          if (collectedAt.year == now.year &&
-              collectedAt.month == now.month &&
-              collectedAt.day == now.day) {
-            return sum + (double.tryParse(due.amount) ?? 0);
-          }
-        }
-      }
-      return sum;
-    });
-    final collectedToday = currencyFormat.format(collectedTodayVal);
+    final collectedToday = dashboardData != null
+        ? currencyFormat.format(dashboardData!.summary.amountCollectedToday)
+        : currencyFormat.format(0);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32.0),
@@ -145,6 +133,7 @@ class _DuesContent extends StatelessWidget {
           Text('Kiosk Dues Details', style: AppTextStyle.heading2),
           const SizedBox(height: 16),
           _buildDuesTable(context, dues, currencyFormat),
+          _buildPagination(context),
         ],
       ),
     );
@@ -237,61 +226,68 @@ class _DuesContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Kiosk')),
-              DataColumn(label: Text('Owner')),
-              DataColumn(label: Text('Total Created')),
-              DataColumn(label: Text('Outstanding')),
-              DataColumn(label: Text('Last Payment')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: dues.map((due) {
-              final amount = double.tryParse(due.amount) ?? 0;
-              final outstanding = due.isPaid ? 0 : amount;
-              final isHighRisk = !due.isPaid && _isHighRisk(due);
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.of(context).size.width - 64,
+            ),
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+              columns: const [
+                DataColumn(label: Text('Kiosk')),
+                DataColumn(label: Text('Owner')),
+                DataColumn(label: Text('Total Created')),
+                DataColumn(label: Text('Outstanding')),
+                DataColumn(label: Text('Last Payment')),
+                DataColumn(label: Text('Actions')),
+              ],
+              rows: dues.map((due) {
+                final amount = double.tryParse(due.amount) ?? 0;
+                final outstanding = due.isPaid ? 0 : amount;
+                final isHighRisk = !due.isPaid && _isHighRisk(due);
 
-              String lastPayment = 'N/A';
-              if (due.lastCollectedAt != null) {
-                final date = DateTime.tryParse(due.lastCollectedAt!);
-                if (date != null) {
-                  final now = DateTime.now();
-                  final difference = now.difference(date).inDays;
-                  lastPayment = '$difference days ago';
+                String lastPayment = 'N/A';
+                if (due.lastCollectedAt != null) {
+                  final date = DateTime.tryParse(due.lastCollectedAt!);
+                  if (date != null) {
+                    final now = DateTime.now();
+                    final difference = now.difference(date).inDays;
+                    lastPayment = '$difference days ago';
+                  }
                 }
-              }
 
-              return DataRow(cells: [
-                DataCell(
-                  Text(
-                    due.kioskName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color:
-                          isHighRisk ? AppColors.error : AppColors.textPrimary,
+                return DataRow(cells: [
+                  DataCell(
+                    Text(
+                      due.kioskName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isHighRisk
+                            ? AppColors.error
+                            : AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                DataCell(Text(due.ownerName)),
-                DataCell(Text(currencyFormat.format(amount))),
-                DataCell(
-                  Text(
-                    currencyFormat.format(outstanding),
-                    style: TextStyle(
-                      fontWeight:
-                          isHighRisk ? FontWeight.bold : FontWeight.normal,
-                      color:
-                          isHighRisk ? AppColors.error : AppColors.textPrimary,
+                  DataCell(Text(due.ownerName)),
+                  DataCell(Text(currencyFormat.format(amount))),
+                  DataCell(
+                    Text(
+                      currencyFormat.format(outstanding),
+                      style: TextStyle(
+                        fontWeight:
+                            isHighRisk ? FontWeight.bold : FontWeight.normal,
+                        color: isHighRisk
+                            ? AppColors.error
+                            : AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                DataCell(Text(lastPayment)),
-                DataCell(
-                  _buildActionButton(context, due),
-                ),
-              ]);
-            }).toList(),
+                  DataCell(Text(lastPayment)),
+                  DataCell(
+                    _buildActionButton(context, due),
+                  ),
+                ]);
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -434,5 +430,44 @@ class _DuesContent extends StatelessWidget {
     if (createdAt == null) return false;
     final daysSinceCreated = DateTime.now().difference(createdAt).inDays;
     return daysSinceCreated > 30;
+  }
+
+  Widget _buildPagination(BuildContext context) {
+    final totalPages = (total / limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(page - 1) * limit + 1} to ${page * limit > total ? total : page * limit} of $total kiosks',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: page > 1
+                    ? () => context.read<DuesCubit>().changePage(page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text('Page $page of $totalPages', style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: page < totalPages
+                    ? () => context.read<DuesCubit>().changePage(page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -27,16 +27,21 @@ class DuesDashboardModel {
 
 class DuesSummary {
   final String totalOutstanding;
+  final double amountCollectedToday;
   final int count;
 
   DuesSummary({
     required this.totalOutstanding,
+    required this.amountCollectedToday,
     required this.count,
   });
 
   factory DuesSummary.fromJson(Map<String, dynamic> json) {
     return DuesSummary(
       totalOutstanding: json['total_outstanding']?.toString() ?? '0',
+      amountCollectedToday:
+          double.tryParse(json['amount_collected_today']?.toString() ?? '0') ??
+              0.0,
       count: json['count'] ?? 0,
     );
   }

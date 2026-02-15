@@ -19,23 +19,40 @@ class DuesCubit extends Cubit<DuesState> {
     required this.getDuesDashboardUseCase,
   }) : super(DuesInitial());
 
-  Future<void> getDues() async {
+  Future<void> getDues({int page = 1, int limit = 10}) async {
     emit(DuesLoading());
-    final duesResult = await getDuesUseCase();
+    final duesResult = await getDuesUseCase(page: page, limit: limit);
     final dashboardResult = await getDuesDashboardUseCase();
 
     if (isClosed) return;
 
     duesResult.fold(
       (failure) => emit(DuesError(message: failure.message)),
-      (dues) {
+      (dueResponse) {
         dashboardResult.fold(
-          (failure) => emit(
-              DuesLoaded(dues: dues)), // Still show dues if dashboard fails
-          (dashboard) => emit(DuesLoaded(dues: dues, dashboardData: dashboard)),
+          (failure) => emit(DuesLoaded(
+            dues: dueResponse.dueList,
+            total: dueResponse.total,
+            page: dueResponse.page,
+            limit: dueResponse.limit,
+          )), // Still show dues if dashboard fails
+          (dashboard) => emit(DuesLoaded(
+            dues: dueResponse.dueList,
+            dashboardData: dashboard,
+            total: dueResponse.total,
+            page: dueResponse.page,
+            limit: dueResponse.limit,
+          )),
         );
       },
     );
+  }
+
+  void changePage(int page) {
+    if (state is DuesLoaded) {
+      final currentState = state as DuesLoaded;
+      getDues(page: page, limit: currentState.limit);
+    }
   }
 
   Future<void> collectDue(String dueId, double amount) async {

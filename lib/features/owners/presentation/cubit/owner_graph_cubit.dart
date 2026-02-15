@@ -9,7 +9,7 @@ class OwnerGraphCubit extends Cubit<OwnerGraphState> {
   OwnerGraphCubit(this._getOwnerGraphUseCase) : super(OwnerGraphInitial());
 
   bool isAccumulative = false;
-  String currentFilter = 'weekly';
+  String currentFilter = '7d';
   String currentResource = 'transactions_amount';
 
   Future<void> getOwnerGraph({

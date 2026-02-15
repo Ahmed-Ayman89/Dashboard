@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart'; // Removed as it's truly unused now
 import '../../../../core/helper/app_text_style.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../dashboard/presentation/widgets/analytics_chart.dart';
@@ -80,28 +80,10 @@ class _OwnerGraphSectionState extends State<OwnerGraphSection> {
       List<FlSpot> spots = [];
       List<String> xAxisLabels = [];
 
-      final cubit = context.read<OwnerGraphCubit>();
       for (int i = 0; i < data.length; i++) {
         spots.add(FlSpot(i.toDouble(), data[i].volume));
 
-        // Prioritize API label
-        String label = data[i].label;
-        if (label.isEmpty) {
-          // Fallback based on filter
-          final filter = cubit.currentFilter;
-          if (filter == '365d' || filter == 'all') {
-            label = DateFormat('MMM yyyy').format(data[i].date);
-          } else if (filter == '7d') {
-            label = DateFormat('EEE').format(data[i].date);
-          } else if (filter == '30d') {
-            label = DateFormat('MMM dd').format(data[i].date);
-          } else if (filter == '1d') {
-            label = DateFormat('HH:mm').format(data[i].date);
-          } else {
-            label = DateFormat('MM/dd').format(data[i].date);
-          }
-        }
-        xAxisLabels.add(label);
+        xAxisLabels.add(data[i].label);
       }
 
       return Column(

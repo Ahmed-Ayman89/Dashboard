@@ -11,8 +11,10 @@ abstract class WorkersRepository {
 
   Future<ApiResponse> banWorkerById(String id);
 
-  Future<ApiResponse> getWorkerGraph(
-      {required String id,
-      String resource = 'transactions_amount',
-      String filter = 'weekly'});
+  Future<ApiResponse> getWorkerGraph({
+    required String id,
+    String resource = 'transactions_amount',
+    String filter = 'weekly',
+    bool accumulative = true,
+  });
 }

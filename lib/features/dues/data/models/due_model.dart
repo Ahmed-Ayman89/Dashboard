@@ -34,20 +34,28 @@ class DueResponseModel {
   final bool success;
   final String message;
   final List<DueModel> dueList;
+  final int total;
+  final int page;
+  final int limit;
 
   DueResponseModel({
     required this.success,
     required this.message,
     required this.dueList,
+    required this.total,
+    required this.page,
+    required this.limit,
   });
 
   factory DueResponseModel.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? {};
     return DueResponseModel(
-      success: json['success'],
-      message: json['message'],
-      dueList: ((json['data'] != null && json['data']['dues'] != null)
-              ? (json['data']['dues'] as List)
-              : [])
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      total: data['total'] ?? 0,
+      page: data['page'] ?? 1,
+      limit: data['limit'] ?? 10,
+      dueList: (data['dues'] != null ? (data['dues'] as List) : [])
           .map((e) => DueModel.fromJson(e))
           .toList(),
     );

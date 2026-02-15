@@ -70,6 +70,7 @@ class WorkersRemoteDataSource {
     required String id,
     String resource = 'transactions_amount',
     String filter = 'weekly',
+    bool accumulative = true, // Added for graph improvements
   }) async {
     try {
       final response = await APIHelper().getRequest(
@@ -77,6 +78,7 @@ class WorkersRemoteDataSource {
         queryParameters: {
           'resource': resource,
           'filter': filter,
+          'accumulative': accumulative,
         },
       );
       return response;

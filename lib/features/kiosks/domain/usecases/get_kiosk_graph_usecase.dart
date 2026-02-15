@@ -10,11 +10,13 @@ class GetKioskGraphUseCase {
     required String id,
     String resource = 'commission_earned',
     String filter = '7d',
+    bool accumulative = true,
   }) async {
     return await _repository.getKioskGraph(
       id: id,
       resource: resource,
       filter: filter,
+      accumulative: accumulative,
     );
   }
 }
