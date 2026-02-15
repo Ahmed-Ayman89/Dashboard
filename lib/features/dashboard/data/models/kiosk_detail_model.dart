@@ -1,7 +1,7 @@
 class KioskDetailModel {
   final KioskProfile profile;
   final KioskOwnerDetail owner;
-  final List<dynamic> workers;
+  final List<KioskWorker> workers;
   final List<dynamic> topRecipients;
   final KioskDues dues;
   final List<KioskGoal> goals;
@@ -19,7 +19,10 @@ class KioskDetailModel {
     return KioskDetailModel(
       profile: KioskProfile.fromJson(json['profile']),
       owner: KioskOwnerDetail.fromJson(json['owner']),
-      workers: json['workers'] ?? [],
+      workers: (json['workers'] as List?)
+              ?.map((e) => KioskWorker.fromJson(e))
+              .toList() ??
+          [],
       topRecipients: json['top_recipients'] ?? [],
       dues: KioskDues.fromJson(json['dues']),
       goals: (json['goals'] as List?)
@@ -83,24 +86,22 @@ class KioskOwnerDetail {
 }
 
 class KioskDues {
-  final num? balance;
-  final int overdueCount;
-  final num? overdueAmount;
-  final List<dynamic> recent;
+  final String? id;
+  final num? amount;
+  final bool isPaid;
 
   const KioskDues({
-    this.balance,
-    required this.overdueCount,
-    this.overdueAmount,
-    required this.recent,
+    this.id,
+    this.amount,
+    required this.isPaid,
   });
 
   factory KioskDues.fromJson(Map<String, dynamic> json) {
     return KioskDues(
-      balance: json['balance'],
-      overdueCount: json['overdue_count'] ?? 0,
-      overdueAmount: json['overdue_amount'],
-      recent: json['recent'] ?? [],
+      id: json['id'],
+      amount:
+          json['amount'] != null ? num.tryParse(json['amount'].toString()) : 0,
+      isPaid: json['is_paid'] ?? false,
     );
   }
 }
@@ -128,6 +129,29 @@ class KioskGoal {
       status: json['status'],
       deadline:
           json['deadline'] != null ? DateTime.parse(json['deadline']) : null,
+    );
+  }
+}
+
+class KioskWorker {
+  final String id;
+  final String name;
+  final String phone;
+  final String status;
+
+  const KioskWorker({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.status,
+  });
+
+  factory KioskWorker.fromJson(Map<String, dynamic> json) {
+    return KioskWorker(
+      id: json['id'],
+      name: json['name'],
+      phone: json['phone'],
+      status: json['status'],
     );
   }
 }

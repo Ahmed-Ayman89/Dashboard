@@ -49,17 +49,35 @@ class CallsCubit extends Cubit<CallsState> {
 
   CallsCubit(this._getCallsUseCase) : super(CallsInitial());
 
-  Future<void> getCalls({int page = 1}) async {
-    _currentPage = page;
+  // Filter states
+  String _currentStatus = 'All';
+  String _searchQuery = '';
+  DateTime? _fromDate;
+  DateTime? _toDate;
 
-    if (page == 1) {
-      emit(CallsLoading());
-    }
+  Future<void> getCalls({
+    int page = 1,
+    String? status,
+    String? search,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    _currentPage = page;
+    if (status != null) _currentStatus = status;
+    if (search != null) _searchQuery = search;
+    if (from != null) _fromDate = from;
+    if (to != null) _toDate = to;
+
+    emit(CallsLoading());
 
     try {
       final response = await _getCallsUseCase(
         page: _currentPage,
         limit: _limit,
+        status: _currentStatus,
+        search: _searchQuery,
+        from: _fromDate?.toIso8601String(),
+        to: _toDate?.toIso8601String(),
       );
 
       if (isClosed) return;
@@ -94,21 +112,30 @@ class CallsCubit extends Cubit<CallsState> {
     }
   }
 
-  void loadNextPage() {
-    if (state is CallsLoaded) {
-      final currentState = state as CallsLoaded;
-      if (currentState.calls.length < currentState.total) {
-        // Logic depends on if list is accumulative or replaced. Using replace for pagination usually
-        // If we want infinite scroll, we need to append. But the current implementation replaces.
-        // Assuming standard pagination where we just load next page.
-        getCalls(page: _currentPage + 1);
-      }
-    }
+  Future<void> changePage(int page) async {
+    await getCalls(page: page);
   }
 
-  void loadPreviousPage() {
-    if (_currentPage > 1) {
-      getCalls(page: _currentPage - 1);
-    }
+  void updateFilters({
+    String? status,
+    String? search,
+    DateTime? from,
+    DateTime? to,
+  }) {
+    getCalls(
+      page: 1, // Reset to first page on filter change
+      status: status,
+      search: search,
+      from: from,
+      to: to,
+    );
+  }
+
+  void clearFilters() {
+    _currentStatus = 'All';
+    _searchQuery = '';
+    _fromDate = null;
+    _toDate = null;
+    getCalls(page: 1);
   }
 }

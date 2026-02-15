@@ -1,6 +1,5 @@
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
-import 'package:dashboard_grow/features/redemptions/data/models/redemption_model.dart';
 import 'package:dashboard_grow/features/redemptions/data/repositories/redemptions_repository_impl.dart';
 import 'package:dashboard_grow/features/redemptions/domain/usecases/get_redemptions_usecase.dart';
 import 'package:dashboard_grow/features/redemptions/domain/usecases/process_redemption_usecase.dart';
@@ -204,7 +203,7 @@ class _RedemptionsView extends StatelessWidget {
                     if (state is RedemptionsLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is RedemptionsLoaded) {
-                      return _buildList(context, state.redemptions);
+                      return _buildList(context, state);
                     } else if (state is RedemptionsFailure) {
                       return Center(
                         child: Text(state.message,
@@ -223,64 +222,164 @@ class _RedemptionsView extends StatelessWidget {
     );
   }
 
-  Widget _buildList(BuildContext context, List<RedemptionModel> redemptions) {
-    if (redemptions.isEmpty) {
+  Widget _buildList(BuildContext context, RedemptionsLoaded state) {
+    if (state.redemptions.isEmpty) {
       return Center(
           child: Text('No pending redemptions',
               style: AppTextStyle.bodyRegular
                   .copyWith(color: AppColors.neutral500)));
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          dividerColor: AppColors.neutral200,
-          dataTableTheme: DataTableThemeData(
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            dataRowColor: WidgetStateProperty.all(AppColors.white),
-          ),
-        ),
-        child: DataTable(
-          columns: [
-            DataColumn(label: Text('Date', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Phone', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Role', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Amount', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Method', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Details', style: AppTextStyle.caption)),
-            DataColumn(label: Text('Actions', style: AppTextStyle.caption)),
-          ],
-          rows: redemptions.map((redemption) {
-            return DataRow(cells: [
-              DataCell(Text(
-                  DateFormat('MMM d, yyyy').format(redemption.createdAt),
-                  style: AppTextStyle.bodySmall)),
-              DataCell(
-                  Text(redemption.userPhone, style: AppTextStyle.bodySmall)),
-              DataCell(_buildRoleBadge(redemption.userRole)),
-              DataCell(Text('${redemption.amount.toStringAsFixed(2)} EGP',
-                  style: AppTextStyle.bodySmall)),
-              DataCell(Text(redemption.method, style: AppTextStyle.bodySmall)),
-              DataCell(Text(redemption.details, style: AppTextStyle.bodySmall)),
-              DataCell(
-                ElevatedButton(
-                  onPressed: () => _showProcessDialog(context, redemption.id),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  child: Text(
-                    'Process',
-                    style: AppTextStyle.setCairoWhite(
-                        fontSize: 12, fontWeight: FontWeight.bold),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dividerColor: AppColors.neutral200,
+                  dataTableTheme: DataTableThemeData(
+                    headingRowColor:
+                        WidgetStateProperty.all(AppColors.neutral100),
+                    dataRowColor: WidgetStateProperty.all(AppColors.white),
                   ),
                 ),
+                child: DataTable(
+                  columns: [
+                    DataColumn(
+                        label: Text('Date', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Phone', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Role', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Amount', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Method', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Details', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Status', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Actions', style: AppTextStyle.caption)),
+                  ],
+                  rows: state.redemptions.map((redemption) {
+                    final isPending =
+                        redemption.status.toUpperCase() == 'PENDING';
+                    return DataRow(cells: [
+                      DataCell(Text(
+                          DateFormat('MMM d, yyyy')
+                              .format(redemption.createdAt),
+                          style: AppTextStyle.bodySmall)),
+                      DataCell(Text(redemption.userPhone,
+                          style: AppTextStyle.bodySmall)),
+                      DataCell(_buildRoleBadge(redemption.userRole)),
+                      DataCell(Text(
+                          '${redemption.amount.toStringAsFixed(2)} EGP',
+                          style: AppTextStyle.bodySmall)),
+                      DataCell(Text(redemption.method,
+                          style: AppTextStyle.bodySmall)),
+                      DataCell(Text(redemption.details,
+                          style: AppTextStyle.bodySmall)),
+                      DataCell(_buildStatusBadge(redemption.status)),
+                      DataCell(
+                        ElevatedButton(
+                          onPressed: isPending
+                              ? () => _showProcessDialog(context, redemption.id)
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isPending
+                                ? AppColors.primary
+                                : AppColors.neutral300,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                          ),
+                          child: Text(
+                            isPending ? 'Process' : 'Processed',
+                            style: AppTextStyle.setCairoWhite(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ]);
+                  }).toList(),
+                ),
               ),
-            ]);
-          }).toList(),
+            ),
+          ),
         ),
+        _buildPagination(context, state),
+      ],
+    );
+  }
+
+  Widget _buildPagination(BuildContext context, RedemptionsLoaded state) {
+    if (state.total == 0) return const SizedBox.shrink();
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} redemptions',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () => context
+                        .read<RedemptionsCubit>()
+                        .changePage(state.page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () => context
+                        .read<RedemptionsCubit>()
+                        .changePage(state.page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color = AppColors.neutral600;
+    if (status.toUpperCase() == 'PENDING') color = AppColors.warning;
+    if (status.toUpperCase() == 'COMPLETED') color = AppColors.success;
+    if (status.toUpperCase() == 'FAILED' ||
+        status.toUpperCase() == 'REJECTED') {
+      color = AppColors.error;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: AppTextStyle.caption
+            .copyWith(color: color, fontWeight: FontWeight.bold),
       ),
     );
   }

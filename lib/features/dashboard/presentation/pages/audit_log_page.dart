@@ -74,49 +74,100 @@ class _AuditLogView extends StatelessWidget {
                       ),
                     );
                   } else if (state is AuditLogsSuccess) {
-                    if (state.logs.isEmpty) {
-                      return const Center(child: Text('No audit logs found.'));
-                    }
-                    return ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.logs.length,
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemBuilder: (context, index) {
-                        final log = state.logs[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.neutral100,
-                            child: const Icon(Icons.history_rounded,
-                                color: AppColors.neutral600),
-                          ),
-                          title: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(log.admin,
-                                  style: AppTextStyle.bodySmall
-                                      .copyWith(fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 8),
-                              Text('performed', style: AppTextStyle.bodySmall),
-                              const SizedBox(width: 8),
-                              Text(log.action,
-                                  style: AppTextStyle.bodySmall.copyWith(
-                                      color: AppColors.brandPrimary,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          subtitle: Text(
-                              'Target: ${log.details?['details'] ?? log.targetId} • ${log.createdAt.toString()}',
-                              style: AppTextStyle.caption),
-                          trailing: const Icon(Icons.info_outline_rounded,
-                              size: 18, color: AppColors.neutral400),
-                        );
-                      },
+                    return Column(
+                      children: [
+                        Expanded(child: _buildLogsList(context, state)),
+                        _buildPagination(context, state),
+                      ],
                     );
                   }
                   return const SizedBox.shrink();
                 },
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogsList(BuildContext context, AuditLogsSuccess state) {
+    if (state.logs.isEmpty) {
+      return const Center(child: Text('No audit logs found.'));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: state.logs.length,
+      separatorBuilder: (context, index) => const Divider(),
+      itemBuilder: (context, index) {
+        final log = state.logs[index];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: AppColors.neutral100,
+            child:
+                const Icon(Icons.history_rounded, color: AppColors.neutral600),
+          ),
+          title: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(log.admin,
+                  style: AppTextStyle.bodySmall
+                      .copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              Text('performed', style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              Text(log.action,
+                  style: AppTextStyle.bodySmall
+                      .copyWith(color: AppColors.primary)),
+            ],
+          ),
+          subtitle: Text(
+              'Target: ${log.details?['details'] ?? log.targetId} • ${log.createdAt.toString()}',
+              style: AppTextStyle.caption),
+          trailing: const Icon(Icons.info_outline_rounded,
+              size: 18, color: AppColors.neutral400),
+        );
+      },
+    );
+  }
+
+  Widget _buildPagination(BuildContext context, AuditLogsSuccess state) {
+    if (state.total == 0) return const SizedBox.shrink();
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} entries',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () => context
+                        .read<AuditLogsCubit>()
+                        .changePage(state.page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () => context
+                        .read<AuditLogsCubit>()
+                        .changePage(state.page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
           ),
         ],
       ),

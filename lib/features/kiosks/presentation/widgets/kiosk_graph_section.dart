@@ -181,7 +181,13 @@ class _KioskGraphSectionState extends State<KioskGraphSection> {
     List<String> xAxisLabels = [];
 
     for (int i = 0; i < data.length; i++) {
-      spots.add(FlSpot(i.toDouble(), data[i].volume));
+      double yValue = 0;
+      if (_selectedResource == 'transactions_count') {
+        yValue = data[i].count.toDouble();
+      } else {
+        yValue = data[i].volume;
+      }
+      spots.add(FlSpot(i.toDouble(), yValue));
       xAxisLabels.add(data[i].label);
     }
 

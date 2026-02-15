@@ -31,6 +31,14 @@ class _CallsView extends StatefulWidget {
 }
 
 class _CallsViewState extends State<_CallsView> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,132 +48,270 @@ class _CallsViewState extends State<_CallsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Calls Management', style: AppTextStyle.heading1),
+            _buildHeader(context),
             const SizedBox(height: 32),
-            Expanded(child: _buildCallsTable()),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: BlocBuilder<CallsCubit, CallsState>(
+                  builder: (context, state) {
+                    if (state is CallsLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is CallsFailure) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(state.message,
+                                style: AppTextStyle.bodyRegular
+                                    .copyWith(color: AppColors.error)),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  context.read<CallsCubit>().getCalls(),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (state is CallsLoaded) {
+                      return Column(
+                        children: [
+                          Expanded(child: _buildCallsTable(context, state)),
+                          _buildPagination(context, state),
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCallsTable() {
-    return BlocBuilder<CallsCubit, CallsState>(
-      builder: (context, state) {
-        if (state is CallsLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is CallsFailure) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.message,
-                    style: AppTextStyle.bodyRegular
-                        .copyWith(color: AppColors.error)),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => context.read<CallsCubit>().getCalls(),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        } else if (state is CallsLoaded) {
-          if (state.calls.isEmpty) {
-            return Center(
-                child: Text('No calls found', style: AppTextStyle.bodyRegular));
-          }
-          return Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    showCheckboxColumn: false,
-                    headingRowColor:
-                        WidgetStateProperty.all(AppColors.neutral100),
-                    columns: const [
-                      DataColumn(label: Text('Customer')),
-                      DataColumn(label: Text('Number')),
-                      DataColumn(label: Text('Date')),
-                      DataColumn(label: Text('Status')),
-                      DataColumn(label: Text('Admin')),
-                      DataColumn(label: Text('Created At')),
-                    ],
-                    rows: state.calls.map((call) {
-                      return DataRow(
-                        onSelectChanged: (selected) {
-                          if (selected == true) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    CallDetailsPage(callId: call.id),
-                              ),
-                            );
-                          }
-                        },
-                        cells: [
-                          DataCell(
-                            Text(
-                              call.user?.fullName ?? 'Unknown',
-                              style: AppTextStyle.bodySmall.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          DataCell(Text(call.number)),
-                          DataCell(Text(DateFormat('MMM d, yyyy HH:mm')
-                              .format(call.date))),
-                          DataCell(
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: call.status == 'PENDING'
-                                    ? AppColors.warning.withValues(alpha: 0.1)
-                                    : AppColors.success.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                call.status,
-                                style: AppTextStyle.caption.copyWith(
-                                  color: call.status == 'PENDING'
-                                      ? AppColors.warning
-                                      : AppColors.success,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(Text(call.admin?.fullName ?? '-')),
-                          DataCell(Text(DateFormat('MMM d, yyyy')
-                              .format(call.createdAt))),
-                        ],
-                      );
-                    }).toList(),
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Calls Management', style: AppTextStyle.heading1),
+            SizedBox(
+              width: 300,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search calls...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
+                  filled: true,
+                  fillColor: AppColors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                 ),
+                onSubmitted: (value) {
+                  context.read<CallsCubit>().updateFilters(search: value);
+                },
               ),
             ),
-          );
-        }
-        return const SizedBox.shrink();
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildFilterChips(context),
+      ],
+    );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildFilterChip(context, 'All', null),
+          const SizedBox(width: 12),
+          _buildFilterChip(context, 'PENDING', AppColors.warning),
+          const SizedBox(width: 12),
+          _buildFilterChip(context, 'RESOLVED', AppColors.success),
+          const SizedBox(width: 12),
+          _buildFilterChip(context, 'REJECTED', AppColors.error),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(BuildContext context, String label, Color? color) {
+    return InkWell(
+      onTap: () {
+        context
+            .read<CallsCubit>()
+            .updateFilters(status: label == 'All' ? null : label);
       },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.neutral200),
+        ),
+        child: Row(
+          children: [
+            if (color != null) ...[
+              Icon(Icons.circle, size: 8, color: color),
+              const SizedBox(width: 8),
+            ],
+            Text(label,
+                style: AppTextStyle.bodySmall
+                    .copyWith(fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCallsTable(BuildContext context, CallsLoaded state) {
+    if (state.calls.isEmpty) {
+      return Center(
+          child: Text('No calls found', style: AppTextStyle.bodyRegular));
+    }
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: SingleChildScrollView(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            showCheckboxColumn: false,
+            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
+            columns: const [
+              DataColumn(label: Text('Customer')),
+              DataColumn(label: Text('Number')),
+              DataColumn(label: Text('Date')),
+              DataColumn(label: Text('Status')),
+              DataColumn(label: Text('Admin')),
+              DataColumn(label: Text('Created At')),
+            ],
+            rows: state.calls.map((call) {
+              return DataRow(
+                onSelectChanged: (selected) {
+                  if (selected == true) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CallDetailsPage(callId: call.id),
+                      ),
+                    );
+                  }
+                },
+                cells: [
+                  DataCell(
+                    Text(
+                      call.user?.fullName ?? 'Unknown',
+                      style: AppTextStyle.bodySmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  DataCell(Text(call.number)),
+                  DataCell(
+                      Text(DateFormat('MMM d, yyyy HH:mm').format(call.date))),
+                  DataCell(
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(call.status).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        call.status,
+                        style: AppTextStyle.caption.copyWith(
+                          color: _getStatusColor(call.status),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(Text(call.admin?.fullName ?? '-')),
+                  DataCell(
+                      Text(DateFormat('MMM d, yyyy').format(call.createdAt))),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return AppColors.warning;
+      case 'RESOLVED':
+        return AppColors.success;
+      case 'REJECTED':
+        return AppColors.error;
+      default:
+        return AppColors.neutral600;
+    }
+  }
+
+  Widget _buildPagination(BuildContext context, CallsLoaded state) {
+    if (state.total == 0) return const SizedBox.shrink();
+    final totalPages = (state.total / state.limit).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} calls',
+            style: AppTextStyle.caption,
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: state.page > 1
+                    ? () =>
+                        context.read<CallsCubit>().changePage(state.page - 1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+              ),
+              const SizedBox(width: 8),
+              Text('Page ${state.page} of $totalPages',
+                  style: AppTextStyle.bodySmall),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: state.page < totalPages
+                    ? () =>
+                        context.read<CallsCubit>().changePage(state.page + 1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

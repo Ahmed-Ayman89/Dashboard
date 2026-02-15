@@ -7,9 +7,17 @@ class RedemptionsRepositoryImpl implements RedemptionsRepository {
       RedemptionsRemoteDataSource();
 
   @override
-  Future<ApiResponse> getRedemptions({String? status}) async {
+  Future<ApiResponse> getRedemptions({
+    String? status,
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      return await _remoteDataSource.getRedemptions(status: status);
+      return await _remoteDataSource.getRedemptions(
+        status: status,
+        page: page,
+        limit: limit,
+      );
     } catch (e) {
       return ApiResponse.error(message: e.toString());
     }

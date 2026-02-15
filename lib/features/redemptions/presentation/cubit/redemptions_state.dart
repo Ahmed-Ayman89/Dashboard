@@ -13,11 +13,19 @@ class RedemptionsLoading extends RedemptionsState {}
 
 class RedemptionsLoaded extends RedemptionsState {
   final List<RedemptionModel> redemptions;
+  final int total;
+  final int page;
+  final int limit;
 
-  const RedemptionsLoaded({required this.redemptions});
+  const RedemptionsLoaded({
+    required this.redemptions,
+    this.total = 0,
+    this.page = 1,
+    this.limit = 10,
+  });
 
   @override
-  List<Object> get props => [redemptions];
+  List<Object> get props => [redemptions, total, page, limit];
 }
 
 class RedemptionsFailure extends RedemptionsState {

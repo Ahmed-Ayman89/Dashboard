@@ -7,13 +7,38 @@ class CallsRepositoryImpl implements CallsRepository {
   final APIHelper _apiHelper = APIHelper();
 
   @override
-  Future<ApiResponse> getCalls({int page = 1, int limit = 10}) async {
+  Future<ApiResponse> getCalls({
+    int page = 1,
+    int limit = 10,
+    String? status,
+    String? search,
+    String? from,
+    String? to,
+  }) async {
+    final Map<String, dynamic> queryParameters = {
+      'page': page,
+      'limit': limit,
+    };
+
+    if (status != null && status.isNotEmpty && status != 'All') {
+      queryParameters['status'] = status.toUpperCase();
+    }
+
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+
+    if (from != null && from.isNotEmpty) {
+      queryParameters['from'] = from;
+    }
+
+    if (to != null && to.isNotEmpty) {
+      queryParameters['to'] = to;
+    }
+
     return await _apiHelper.getRequest(
       endPoint: EndPoints.adminCalls,
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-      },
+      queryParameters: queryParameters,
     );
   }
 

@@ -39,4 +39,8 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
       emit(AuditLogsFailure(e.toString()));
     }
   }
+
+  Future<void> changePage(int page) async {
+    await getLogs(page: page);
+  }
 }

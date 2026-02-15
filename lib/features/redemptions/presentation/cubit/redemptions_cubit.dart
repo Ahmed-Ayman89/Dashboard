@@ -14,23 +14,38 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
       : super(RedemptionsInitial());
 
   String _currentStatus = 'PENDING';
+  int _currentPage = 1;
+  final int _limit = 10;
 
-  Future<void> getRedemptions({String? status}) async {
+  Future<void> getRedemptions({String? status, int page = 1}) async {
     if (status != null) _currentStatus = status;
+    _currentPage = page;
+
     emit(RedemptionsLoading());
-    final response = await getRedemptionsUseCase(status: _currentStatus);
+    final response = await getRedemptionsUseCase(
+      status: _currentStatus,
+      page: _currentPage,
+      limit: _limit,
+    );
+
     if (isClosed) return;
 
     if (response.error == null) {
       try {
-        // Handle different response structures
         final dynamic responseData = response.data['data'];
-        final List<dynamic> data;
+        List<dynamic> data = [];
+        int total = 0;
+        int currentPage = 1;
+        int limit = 10;
 
         if (responseData is Map && responseData.containsKey('redemptions')) {
           data = responseData['redemptions'];
+          total = responseData['total'] ?? 0;
+          currentPage = responseData['page'] ?? 1;
+          limit = responseData['limit'] ?? 10;
         } else if (responseData is List) {
           data = responseData;
+          total = data.length;
         } else {
           emit(RedemptionsFailure(message: 'Invalid response format'));
           return;
@@ -38,7 +53,12 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
 
         final List<RedemptionModel> redemptions =
             data.map((e) => RedemptionModel.fromJson(e)).toList();
-        emit(RedemptionsLoaded(redemptions: redemptions));
+        emit(RedemptionsLoaded(
+          redemptions: redemptions,
+          total: total,
+          page: currentPage,
+          limit: limit,
+        ));
       } catch (e) {
         emit(
             RedemptionsFailure(message: 'Error parsing data: ${e.toString()}'));
@@ -46,6 +66,10 @@ class RedemptionsCubit extends Cubit<RedemptionsState> {
     } else {
       emit(RedemptionsFailure(message: response.message ?? 'Unknown error'));
     }
+  }
+
+  Future<void> changePage(int page) async {
+    await getRedemptions(page: page);
   }
 
   Future<void> processRedemption({

@@ -5,6 +5,7 @@ class RedemptionModel {
   final double amount;
   final String method;
   final String details;
+  final String status;
   final DateTime createdAt;
 
   RedemptionModel({
@@ -14,6 +15,7 @@ class RedemptionModel {
     required this.amount,
     required this.method,
     required this.details,
+    required this.status,
     required this.createdAt,
   });
 
@@ -25,6 +27,7 @@ class RedemptionModel {
       amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
       method: json['method'] ?? '',
       details: json['details'] ?? '',
+      status: json['status'] ?? 'PENDING',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );
   }

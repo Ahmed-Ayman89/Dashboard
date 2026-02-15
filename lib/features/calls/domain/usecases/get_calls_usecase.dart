@@ -6,7 +6,21 @@ class GetCallsUseCase {
 
   GetCallsUseCase(this._callsRepository);
 
-  Future<ApiResponse> call({int page = 1, int limit = 10}) {
-    return _callsRepository.getCalls(page: page, limit: limit);
+  Future<ApiResponse> call({
+    int page = 1,
+    int limit = 10,
+    String? status,
+    String? search,
+    String? from,
+    String? to,
+  }) {
+    return _callsRepository.getCalls(
+      page: page,
+      limit: limit,
+      status: status,
+      search: search,
+      from: from,
+      to: to,
+    );
   }
 }

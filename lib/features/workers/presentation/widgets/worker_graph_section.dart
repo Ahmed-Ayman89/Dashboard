@@ -181,14 +181,21 @@ class _WorkerGraphSectionState extends State<WorkerGraphSection> {
     List<String> xAxisLabels = [];
 
     for (int i = 0; i < data.length; i++) {
-      spots.add(FlSpot(i.toDouble(), data[i].volume));
+      double yValue = 0;
+      if (_selectedResource == 'transactions_count') {
+        yValue = data[i].count.toDouble();
+      } else {
+        yValue = data[i].volume;
+      }
+      spots.add(FlSpot(i.toDouble(), yValue));
       xAxisLabels.add(data[i].label);
     }
 
     String title = 'Graph';
     if (_selectedResource == 'transactions_count') title = 'Transactions Count';
-    if (_selectedResource == 'transactions_amount')
+    if (_selectedResource == 'transactions_amount') {
       title = 'Transactions Amount';
+    }
     if (_selectedResource == 'commission_earned') title = 'Commission Earned';
 
     return AnalyticsChart(

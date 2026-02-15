@@ -6,7 +6,11 @@ class GetRedemptionsUseCase {
 
   GetRedemptionsUseCase(this.repository);
 
-  Future<ApiResponse> call({String? status}) {
-    return repository.getRedemptions(status: status);
+  Future<ApiResponse> call({
+    String? status,
+    int page = 1,
+    int limit = 10,
+  }) {
+    return repository.getRedemptions(status: status, page: page, limit: limit);
   }
 }

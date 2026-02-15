@@ -112,6 +112,10 @@ class _KioskDetailsView extends StatelessWidget {
                 Text('Goals', style: AppTextStyle.heading2),
                 const SizedBox(height: 16),
                 _buildGoalsList(state.kiosk.goals),
+                const SizedBox(height: 24),
+                Text('Workers', style: AppTextStyle.heading2),
+                const SizedBox(height: 16),
+                _buildWorkersList(state.kiosk.workers),
               ],
             ),
           );
@@ -323,15 +327,14 @@ class _KioskDetailsView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${(dues.balance ?? 0).toStringAsFixed(0)} Points',
+              Text('${(dues.amount ?? 0).toStringAsFixed(0)} Points',
                   style:
                       AppTextStyle.heading2.copyWith(color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 16),
-          _buildDetailRow('Overdue Amount',
-              '${(dues.overdueAmount ?? 0).toStringAsFixed(0)} Points',
-              isError: (dues.overdueAmount ?? 0) > 0),
+          _buildDetailRow('Status', dues.isPaid ? 'Paid' : 'Unpaid',
+              isError: !dues.isPaid),
         ],
       ),
     );
@@ -439,6 +442,87 @@ class _KioskDetailsView extends StatelessWidget {
       ),
       child: Text(
         status.toUpperCase(),
+        style: AppTextStyle.caption
+            .copyWith(color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildWorkersList(List<KioskWorker> workers) {
+    if (workers.isEmpty) {
+      return Center(
+          child: Text("No workers found.",
+              style: AppTextStyle.bodyRegular
+                  .copyWith(color: AppColors.textSecondary)));
+    }
+    return Column(
+      children: workers
+          .map((worker) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.neutral200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neutral900.withOpacity(0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person,
+                          color: AppColors.primary, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(worker.name,
+                              style: AppTextStyle.bodyRegular
+                                  .copyWith(fontWeight: FontWeight.w600)),
+                          Text(worker.phone,
+                              style: AppTextStyle.caption
+                                  .copyWith(color: AppColors.neutral500)),
+                        ],
+                      ),
+                    ),
+                    _buildWorkerStatusChip(worker.status),
+                  ],
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildWorkerStatusChip(String status) {
+    Color color;
+    if (status.toUpperCase() == 'ACTIVE') {
+      color = AppColors.success;
+    } else if (status.toUpperCase() == 'PENDING_INVITE') {
+      color = AppColors.warning;
+    } else {
+      color = AppColors.neutral500;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status.replaceAll('_', ' ').toUpperCase(),
         style: AppTextStyle.caption
             .copyWith(color: color, fontWeight: FontWeight.bold),
       ),
