@@ -191,73 +191,93 @@ class _CallsViewState extends State<_CallsView> {
       return Center(
           child: Text('No calls found', style: AppTextStyle.bodyRegular));
     }
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child: SingleChildScrollView(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            showCheckboxColumn: false,
-            headingRowColor: WidgetStateProperty.all(AppColors.neutral100),
-            columns: const [
-              DataColumn(label: Text('Customer')),
-              DataColumn(label: Text('Number')),
-              DataColumn(label: Text('Date')),
-              DataColumn(label: Text('Status')),
-              DataColumn(label: Text('Admin')),
-              DataColumn(label: Text('Created At')),
-            ],
-            rows: state.calls.map((call) {
-              return DataRow(
-                onSelectChanged: (selected) {
-                  if (selected == true) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CallDetailsPage(callId: call.id),
-                      ),
-                    );
-                  }
-                },
-                cells: [
-                  DataCell(
-                    Text(
-                      call.user?.fullName ?? 'Unknown',
-                      style: AppTextStyle.bodySmall.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  DataCell(Text(call.number)),
-                  DataCell(
-                      Text(DateFormat('MMM d, yyyy HH:mm').format(call.date))),
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(call.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        call.status,
-                        style: AppTextStyle.caption.copyWith(
-                          color: _getStatusColor(call.status),
-                          fontWeight: FontWeight.bold,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  headingRowColor:
+                      WidgetStateProperty.all(AppColors.neutral100),
+                  columns: [
+                    DataColumn(
+                        label: Text('Customer', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Number', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Date', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Status', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Admin', style: AppTextStyle.caption)),
+                    DataColumn(
+                        label: Text('Created At', style: AppTextStyle.caption)),
+                  ],
+                  rows: state.calls.map((call) {
+                    return DataRow(
+                      onSelectChanged: (selected) {
+                        if (selected == true) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CallDetailsPage(callId: call.id),
+                            ),
+                          );
+                        }
+                      },
+                      cells: [
+                        DataCell(
+                          Text(
+                            call.user?.fullName ?? 'Unknown',
+                            style: AppTextStyle.bodySmall.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                  DataCell(Text(call.admin?.fullName ?? '-')),
-                  DataCell(
-                      Text(DateFormat('MMM d, yyyy').format(call.createdAt))),
-                ],
-              );
-            }).toList(),
+                        DataCell(
+                            Text(call.number, style: AppTextStyle.bodySmall)),
+                        DataCell(Text(
+                            DateFormat('MMM d, yyyy HH:mm').format(call.date),
+                            style: AppTextStyle.bodySmall)),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color:
+                                  _getStatusColor(call.status).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              call.status.toUpperCase(),
+                              style: AppTextStyle.caption.copyWith(
+                                color: _getStatusColor(call.status),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataCell(Text(call.admin?.fullName ?? '-',
+                            style: AppTextStyle.bodySmall)),
+                        DataCell(Text(
+                            DateFormat('MMM d, yyyy').format(call.createdAt),
+                            style: AppTextStyle.bodySmall)),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

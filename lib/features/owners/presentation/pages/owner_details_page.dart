@@ -526,15 +526,17 @@ class _OwnerDetailsView extends StatelessWidget {
       itemBuilder: (context, index) {
         final kiosk = kiosks[index];
         return Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.neutral200),
           ),
-          child: Row(
-            children: [
-              Container(
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.secondary.withOpacity(0.1),
@@ -542,30 +544,57 @@ class _OwnerDetailsView extends StatelessWidget {
                 ),
                 child: const Icon(Icons.storefront, color: AppColors.secondary),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(kiosk.name,
-                        style: AppTextStyle.bodyMedium
-                            .copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text('${kiosk.workersCount} Workers',
-                        style: AppTextStyle.caption),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('${kiosk.pendingDues.toStringAsFixed(2)} EGP',
-                      style: AppTextStyle.bodySmall.copyWith(
-                          fontWeight: FontWeight.bold, color: AppColors.error)),
-                  Text('Pending Dues', style: AppTextStyle.caption),
-                ],
-              ),
-            ],
+              title: Text(kiosk.name,
+                  style: AppTextStyle.bodyMedium
+                      .copyWith(fontWeight: FontWeight.bold)),
+              subtitle: Text(
+                  '${kiosk.workersCount} Workers • ${kiosk.pendingDues.toStringAsFixed(2)} EGP Pending',
+                  style: AppTextStyle.caption),
+              children: [
+                if (kiosk.workers.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(color: AppColors.neutral200),
+                        const SizedBox(height: 8),
+                        Text('Workers',
+                            style: AppTextStyle.caption
+                                .copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        ...kiosk.workers.map((worker) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: AppColors.neutral200,
+                                    child: Icon(Icons.person,
+                                        size: 16, color: AppColors.neutral500),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(worker.fullName,
+                                      style: AppTextStyle.bodySmall),
+                                  const Spacer(),
+                                  Text(worker.phone,
+                                      style: AppTextStyle.caption.copyWith(
+                                          color: AppColors.neutral500)),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('No workers assigned',
+                        style: AppTextStyle.caption
+                            .copyWith(color: AppColors.neutral500)),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -573,16 +602,171 @@ class _OwnerDetailsView extends StatelessWidget {
   }
 
   Widget _buildHistoryList(OwnerHistory history) {
-    if (history.transactions.isEmpty && history.redemptions.isEmpty) {
-      return _buildEmptyState('No recent activity');
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+    // Combine logs into a single list layout or sections
+    // For simplicity and clarity, let's use tabs or just headers.
+    // Given the design typically favors a unified feed or clear sections, let's use sections.
+
+    if (history.redemptions.isEmpty && history.transactions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.neutral200)),
-      child: const Center(child: Text('History log placeholder')),
+          border: Border.all(color: AppColors.neutral200),
+        ),
+        child: Center(
+            child: Text('NO DATA',
+                style: AppTextStyle.setPoppinsBlack(
+                    fontSize: 16, fontWeight: FontWeight.w500))),
+      );
+    }
+
+    return Column(
+      children: [
+        if (history.redemptions.isNotEmpty) ...[
+          _buildHistorySectionHeader('Redemptions Request'),
+          const SizedBox(height: 8),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: history.redemptions.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final item = history.redemptions[index];
+              return _buildHistoryCard(
+                icon: Icons.redeem,
+                iconColor: AppColors.warning,
+                title: 'Redemption Request',
+                subtitle:
+                    DateFormat('MMM d, yyyy HH:mm').format(item.createdAt),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('${item.amount.toStringAsFixed(2)} EGP',
+                        style: AppTextStyle.bodySmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error)),
+                    const SizedBox(height: 4),
+                    _buildHistoryStatusBadge(item.status),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (history.transactions.isNotEmpty) ...[
+          _buildHistorySectionHeader('Transactions'),
+          const SizedBox(height: 8),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: history.transactions.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final item = history.transactions[index];
+              return _buildHistoryCard(
+                icon: Icons.receipt,
+                iconColor: AppColors.success,
+                title: 'Transaction @ ${item.kioskName}',
+                subtitle:
+                    DateFormat('MMM d, yyyy HH:mm').format(item.createdAt),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('+${item.amountGross.toStringAsFixed(2)} EGP',
+                        style: AppTextStyle.bodySmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.success)),
+                    Text('Comm: ${item.commission.toStringAsFixed(2)} EGP',
+                        style: AppTextStyle.caption
+                            .copyWith(color: AppColors.neutral500)),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildHistorySectionHeader(String title) {
+    return Row(
+      children: [
+        Text(title,
+            style: AppTextStyle.bodySmall.copyWith(
+                fontWeight: FontWeight.bold, color: AppColors.neutral600)),
+        const Expanded(child: Divider(indent: 12, color: AppColors.neutral200)),
+      ],
+    );
+  }
+
+  Widget _buildHistoryCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required Widget trailing,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: AppTextStyle.bodySmall
+                        .copyWith(fontWeight: FontWeight.w600)),
+                Text(subtitle,
+                    style: AppTextStyle.caption
+                        .copyWith(color: AppColors.neutral500)),
+              ],
+            ),
+          ),
+          trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryStatusBadge(String status) {
+    Color color = AppColors.neutral600;
+    if (status.toUpperCase() == 'PENDING') color = AppColors.warning;
+    if (status.toUpperCase() == 'COMPLETED') color = AppColors.success;
+    if (status.toUpperCase() == 'REJECTED') color = AppColors.error;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: AppTextStyle.caption.copyWith(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 

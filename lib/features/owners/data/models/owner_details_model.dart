@@ -129,12 +129,14 @@ class OwnerKioskItem {
   final String name;
   final int workersCount;
   final double pendingDues;
+  final List<OwnerWorkerItem> workers;
 
   OwnerKioskItem({
     required this.id,
     required this.name,
     required this.workersCount,
     required this.pendingDues,
+    required this.workers,
   });
 
   factory OwnerKioskItem.fromJson(Map<String, dynamic> json) {
@@ -144,13 +146,37 @@ class OwnerKioskItem {
       workersCount: json['workers_count'] ?? 0,
       pendingDues:
           double.tryParse(json['pending_dues']?.toString() ?? '0') ?? 0,
+      workers: (json['workers'] as List<dynamic>?)
+              ?.map((e) => OwnerWorkerItem.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class OwnerWorkerItem {
+  final String id;
+  final String fullName;
+  final String phone;
+
+  OwnerWorkerItem({
+    required this.id,
+    required this.fullName,
+    required this.phone,
+  });
+
+  factory OwnerWorkerItem.fromJson(Map<String, dynamic> json) {
+    return OwnerWorkerItem(
+      id: json['id'] ?? '',
+      fullName: json['full_name'] ?? '',
+      phone: json['phone'] ?? '',
     );
   }
 }
 
 class OwnerHistory {
-  final List<dynamic> redemptions;
-  final List<dynamic> transactions;
+  final List<OwnerRedemptionItem> redemptions;
+  final List<OwnerTransactionItem> transactions;
 
   OwnerHistory({
     required this.redemptions,
@@ -159,8 +185,67 @@ class OwnerHistory {
 
   factory OwnerHistory.fromJson(Map<String, dynamic> json) {
     return OwnerHistory(
-      redemptions: json['redemptions'] ?? [],
-      transactions: json['transactions'] ?? [],
+      redemptions: (json['redemptions'] as List<dynamic>?)
+              ?.map((e) => OwnerRedemptionItem.fromJson(e))
+              .toList() ??
+          [],
+      transactions: (json['transactions'] as List<dynamic>?)
+              ?.map((e) => OwnerTransactionItem.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class OwnerRedemptionItem {
+  final String id;
+  final double amount;
+  final DateTime createdAt;
+  final String status;
+  final String? adminNote;
+
+  OwnerRedemptionItem({
+    required this.id,
+    required this.amount,
+    required this.createdAt,
+    required this.status,
+    this.adminNote,
+  });
+
+  factory OwnerRedemptionItem.fromJson(Map<String, dynamic> json) {
+    return OwnerRedemptionItem(
+      id: json['id'] ?? '',
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      status: json['status'] ?? 'PENDING',
+      adminNote: json['admin_note'],
+    );
+  }
+}
+
+class OwnerTransactionItem {
+  final String id;
+  final double amountGross;
+  final double commission;
+  final DateTime createdAt;
+  final String kioskName;
+
+  OwnerTransactionItem({
+    required this.id,
+    required this.amountGross,
+    required this.commission,
+    required this.createdAt,
+    required this.kioskName,
+  });
+
+  factory OwnerTransactionItem.fromJson(Map<String, dynamic> json) {
+    return OwnerTransactionItem(
+      id: json['id'] ?? '',
+      amountGross:
+          double.tryParse(json['amount_gross']?.toString() ?? '0') ?? 0,
+      commission: double.tryParse(json['commission']?.toString() ?? '0') ?? 0,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      kioskName: json['kiosk']?['name'] ?? 'Unknown Kiosk',
     );
   }
 }
