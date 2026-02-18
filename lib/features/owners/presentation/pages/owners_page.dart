@@ -108,61 +108,73 @@ class _OwnersViewState extends State<_OwnersView> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 600;
+
+        final searchField = TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search owners...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          ),
+          onSubmitted: (value) {
+            context.read<OwnersCubit>().getOwners(page: 1, search: value);
+          },
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (isWide)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Owners Management', style: AppTextStyle.heading1),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Manage and verify kiosk owners',
-                    style: AppTextStyle.bodyMedium,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Owners Management', style: AppTextStyle.heading1),
+                        const SizedBox(height: 8),
+                        Text('Manage and verify kiosk owners',
+                            style: AppTextStyle.bodyMedium),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
+                  SizedBox(width: 300, child: searchField),
                 ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search owners...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: AppColors.primary, width: 1.5),
-                  ),
-                  filled: true,
-                  fillColor: AppColors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                ),
-                onSubmitted: (value) {
-                  context.read<OwnersCubit>().getOwners(page: 1, search: value);
-                },
-              ),
-            ),
+              )
+            else ...[
+              Text('Owners Management', style: AppTextStyle.heading1),
+              const SizedBox(height: 4),
+              Text('Manage and verify kiosk owners',
+                  style: AppTextStyle.bodyMedium),
+              const SizedBox(height: 16),
+              searchField,
+            ],
+            const SizedBox(height: 24),
+            _buildFilterChips(context),
           ],
-        ),
-        const SizedBox(height: 24),
-        _buildFilterChips(context),
-      ],
+        );
+      },
     );
   }
 
@@ -196,9 +208,12 @@ class _OwnersViewState extends State<_OwnersView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} owners',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} owners',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [

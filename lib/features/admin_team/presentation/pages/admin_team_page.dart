@@ -4,12 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/helper/app_text_style.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_snackbar.dart';
+import '../../../../core/network/local_data.dart';
+import '../../data/models/admin_model.dart';
 import '../../data/repositories/admin_repository_impl.dart';
 import '../../domain/usecases/create_admin_usecase.dart';
 import '../../domain/usecases/get_admins_usecase.dart';
 import '../cubit/admin_team_cubit.dart';
 import '../widgets/add_admin_dialog.dart';
+import '../widgets/admin_activities_sheet.dart';
+import '../widgets/edit_admin_dialog.dart';
 import 'package:intl/intl.dart';
+
+import '../../domain/usecases/update_admin_usecase.dart';
+import '../../domain/usecases/delete_admin_usecase.dart';
 
 class AdminTeamPage extends StatelessWidget {
   const AdminTeamPage({super.key});
@@ -22,6 +29,8 @@ class AdminTeamPage extends StatelessWidget {
         return AdminTeamCubit(
           GetAdminsUseCase(repository),
           CreateAdminUseCase(repository),
+          UpdateAdminUseCase(repository),
+          DeleteAdminUseCase(repository),
         )..getAdmins();
       },
       child: const _AdminTeamView(),
@@ -29,8 +38,28 @@ class AdminTeamPage extends StatelessWidget {
   }
 }
 
-class _AdminTeamView extends StatelessWidget {
+class _AdminTeamView extends StatefulWidget {
   const _AdminTeamView();
+
+  @override
+  State<_AdminTeamView> createState() => _AdminTeamViewState();
+}
+
+class _AdminTeamViewState extends State<_AdminTeamView> {
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await LocalData.getUserRole();
+    setState(() {
+      _userRole = role;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,18 +102,19 @@ class _AdminTeamView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Team Members', style: AppTextStyle.heading3),
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddAdminDialog(context),
-                        icon: const Icon(Icons.add, size: 20),
-                        label: Text('Add Member', style: AppTextStyle.button),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                      if (_userRole == 'SUPER_ADMIN')
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddAdminDialog(context),
+                          icon: const Icon(Icons.add, size: 20),
+                          label: Text('Add Member', style: AppTextStyle.button),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -127,6 +157,10 @@ class _AdminTeamView extends StatelessWidget {
                                     label: Text('Joined Date',
                                         style: AppTextStyle.bodyMedium.copyWith(
                                             fontWeight: FontWeight.bold))),
+                                DataColumn(
+                                    label: Text('Actions',
+                                        style: AppTextStyle.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold))),
                               ],
                               rows: state.admins.map((admin) {
                                 return DataRow(cells: [
@@ -140,6 +174,47 @@ class _AdminTeamView extends StatelessWidget {
                                       DateFormat('MMM d, yyyy')
                                           .format(admin.createdAt),
                                       style: AppTextStyle.bodyRegular)),
+                                  DataCell(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.history,
+                                              color: AppColors.neutral500),
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              builder: (context) =>
+                                                  FractionallySizedBox(
+                                                heightFactor: 0.7,
+                                                child: AdminActivitiesSheet(
+                                                    admin: admin),
+                                              ),
+                                            );
+                                          },
+                                          tooltip: 'View Activities',
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.edit,
+                                              color: AppColors.neutral500),
+                                          onPressed: () => _showEditAdminDialog(
+                                              context, admin),
+                                          tooltip: 'Edit Admin',
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: AppColors.error),
+                                          onPressed: () =>
+                                              _showDeleteConfirmation(
+                                                  context, admin),
+                                          tooltip: 'Delete Admin',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ]);
                               }).toList(),
                             ),
@@ -181,6 +256,44 @@ class _AdminTeamView extends StatelessWidget {
     );
   }
 
+  void _showEditAdminDialog(BuildContext context, AdminUser admin) {
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: context.read<AdminTeamCubit>(),
+        child: EditAdminDialog(admin: admin),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, AdminUser admin) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Delete Admin', style: AppTextStyle.heading3),
+        content: Text(
+            'Are you sure you want to delete ${admin.fullName}? This action cannot be undone.',
+            style: AppTextStyle.bodyRegular),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel',
+                style: AppTextStyle.button
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<AdminTeamCubit>().deleteAdmin(admin.id);
+              Navigator.pop(context);
+            },
+            child: Text('Delete',
+                style: AppTextStyle.button.copyWith(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPagination(BuildContext context, AdminTeamLoaded state) {
     final totalPages = (state.total / state.limit).ceil();
     if (totalPages <= 1) return const SizedBox.shrink();
@@ -190,9 +303,12 @@ class _AdminTeamView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} members',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} members',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [

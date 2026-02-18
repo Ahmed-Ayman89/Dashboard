@@ -44,54 +44,60 @@ class _KiosksView extends StatelessWidget {
   }
 
   Widget _buildFilters(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: TextField(
-              onSubmitted: (value) => context.read<KiosksCubit>().getKiosks(
-                    page: 1,
-                    search: value,
-                  ),
-              decoration: InputDecoration(
-                hintText: 'Search kiosks...',
-                hintStyle: AppTextStyle.bodySmall,
-                border: InputBorder.none,
-                icon: const Icon(Icons.search_rounded,
-                    color: AppColors.neutral500),
-              ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: TextField(
+            onSubmitted: (value) => context.read<KiosksCubit>().getKiosks(
+                  page: 1,
+                  search: value,
+                ),
+            decoration: InputDecoration(
+              hintText: 'Search kiosks...',
+              hintStyle: AppTextStyle.bodySmall,
+              border: InputBorder.none,
+              icon:
+                  const Icon(Icons.search_rounded, color: AppColors.neutral500),
             ),
           ),
         ),
-        const SizedBox(width: 16),
-        _buildFilterChip(
-          context,
-          'Suspended',
-          Icons.warning_amber_rounded,
-          AppColors.error,
-          'suspended',
-        ),
-        const SizedBox(width: 12),
-        _buildFilterChip(
-          context,
-          'Active',
-          Icons.check_circle_outline_rounded,
-          AppColors.success,
-          'active',
-        ),
-        const SizedBox(width: 12),
-        _buildFilterChip(
-          context,
-          'All',
-          Icons.list_alt_rounded,
-          AppColors.neutral500,
-          '',
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChip(
+                context,
+                'Suspended',
+                Icons.warning_amber_rounded,
+                AppColors.error,
+                'suspended',
+              ),
+              const SizedBox(width: 12),
+              _buildFilterChip(
+                context,
+                'Active',
+                Icons.check_circle_outline_rounded,
+                AppColors.success,
+                'active',
+              ),
+              const SizedBox(width: 12),
+              _buildFilterChip(
+                context,
+                'All',
+                Icons.list_alt_rounded,
+                AppColors.neutral500,
+                '',
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -269,9 +275,12 @@ class _KiosksView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} kiosks',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} kiosks',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [

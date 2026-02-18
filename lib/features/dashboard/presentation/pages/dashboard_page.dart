@@ -1,6 +1,7 @@
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/core/widgets/responsive_layout.dart';
+import 'package:dashboard_grow/core/network/local_data.dart';
 import 'package:flutter/material.dart';
 import 'package:dashboard_grow/features/owners/presentation/pages/owners_page.dart';
 import 'package:dashboard_grow/features/kiosks/presentation/pages/kiosks_page.dart';
@@ -35,57 +36,89 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
-  final List<NavItem> _navItems = [
-    NavItem(
-        title: 'Home', icon: Icons.home_rounded, destination: const HomeView()),
-    NavItem(
-        title: 'Admin Team',
-        icon: Icons.admin_panel_settings_rounded,
-        destination: const AdminTeamPage()),
-    NavItem(
-        title: 'Owners',
-        icon: Icons.person_pin_rounded,
-        destination: const OwnersPage()),
-    NavItem(
-        title: 'Kiosks',
-        icon: Icons.store_rounded,
-        destination: const KiosksPage()),
-    NavItem(
-        title: 'Workers',
-        icon: Icons.engineering_rounded,
-        destination: const WorkersPage()),
-    NavItem(
-        title: 'Customers',
-        icon: Icons.people_rounded,
-        destination: const CustomersPage()),
-    NavItem(
-        title: 'Transactions',
-        icon: Icons.receipt_long_rounded,
-        destination: const TransactionsPage()),
-    NavItem(
-        title: 'Redemptions',
-        icon: Icons.redeem_rounded,
-        destination: const RedemptionsPage()),
-    NavItem(
-        title: 'Dues',
-        icon: Icons.account_balance_wallet_rounded,
-        destination: const DuesPage()),
-    NavItem(
-        title: 'Calls',
-        icon: Icons.call_rounded,
-        destination: const CallsPage()),
-    NavItem(
-        title: 'Settings',
-        icon: Icons.settings_rounded,
-        destination: const SettingsPage()),
-    NavItem(
-        title: 'Audit Log',
-        icon: Icons.history_rounded,
-        destination: const AuditLogPage()),
-  ];
+  List<NavItem> _navItems = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await LocalData.getUserRole();
+    setState(() {
+      _navItems = _getNavItems(role);
+      _isLoading = false;
+    });
+  }
+
+  List<NavItem> _getNavItems(String? role) {
+    final allItems = [
+      NavItem(
+          title: 'Home',
+          icon: Icons.home_rounded,
+          destination: const HomeView()),
+      NavItem(
+          title: 'Admin Team',
+          icon: Icons.admin_panel_settings_rounded,
+          destination: const AdminTeamPage()),
+      NavItem(
+          title: 'Owners',
+          icon: Icons.person_pin_rounded,
+          destination: const OwnersPage()),
+      NavItem(
+          title: 'Kiosks',
+          icon: Icons.store_rounded,
+          destination: const KiosksPage()),
+      NavItem(
+          title: 'Workers',
+          icon: Icons.engineering_rounded,
+          destination: const WorkersPage()),
+      NavItem(
+          title: 'Customers',
+          icon: Icons.people_rounded,
+          destination: const CustomersPage()),
+      NavItem(
+          title: 'Transactions',
+          icon: Icons.receipt_long_rounded,
+          destination: const TransactionsPage()),
+      NavItem(
+          title: 'Redemptions',
+          icon: Icons.redeem_rounded,
+          destination: const RedemptionsPage()),
+      NavItem(
+          title: 'Dues',
+          icon: Icons.account_balance_wallet_rounded,
+          destination: const DuesPage()),
+      NavItem(
+          title: 'Calls',
+          icon: Icons.call_rounded,
+          destination: const CallsPage()),
+      NavItem(
+          title: 'Settings',
+          icon: Icons.settings_rounded,
+          destination: const SettingsPage()),
+      NavItem(
+          title: 'Audit Log',
+          icon: Icons.history_rounded,
+          destination: const AuditLogPage()),
+    ];
+
+    if (role == 'VIEWER') {
+      allItems.removeWhere((item) => item.title == 'Admin Team');
+    }
+
+    return allItems;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return BlocProvider(
       create: (context) {
         final authRepository = AuthRepositoryImpl();

@@ -22,4 +22,33 @@ class AdminRepositoryImpl implements AdminRepository {
       return ApiResponse.error(message: e.toString());
     }
   }
+
+  @override
+  Future<ApiResponse> getAdminActivities(String id,
+      {int page = 1, int limit = 20}) async {
+    try {
+      return await _remoteDataSource.getAdminActivities(id,
+          page: page, limit: limit);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  @override
+  Future<ApiResponse> updateAdmin(String id, Map<String, dynamic> data) async {
+    try {
+      return await _remoteDataSource.updateAdmin(id, data);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  @override
+  Future<ApiResponse> deleteAdmin(String id) async {
+    try {
+      return await _remoteDataSource.deleteAdmin(id);
+    } catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
 }

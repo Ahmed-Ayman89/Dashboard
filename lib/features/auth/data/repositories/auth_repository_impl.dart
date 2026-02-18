@@ -24,9 +24,24 @@ class AuthRepositoryImpl implements AuthRepository {
             final authData = data['data'];
             accessToken = authData['accessToken'] ?? authData['token'];
             refreshToken = authData['refreshToken'];
+
+            final role = authData['admin_role'] ??
+                authData['adminRole'] ??
+                authData['role'];
+            if (role != null) {
+              await LocalData.updateRoleAndPermissions(
+                  userRole: role, permissions: []);
+            }
           } else {
             accessToken = data['accessToken'] ?? data['token'];
             refreshToken = data['refreshToken'];
+
+            final role =
+                data['admin_role'] ?? data['adminRole'] ?? data['role'];
+            if (role != null) {
+              await LocalData.updateRoleAndPermissions(
+                  userRole: role, permissions: []);
+            }
           }
 
           print("Parsed Access Token: $accessToken"); // Debug log

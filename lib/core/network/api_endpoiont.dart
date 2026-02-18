@@ -20,7 +20,7 @@ abstract class EndPoints {
   static const String customerSupportCall = 'customer/support-call';
   static const String customerProfile = 'profile/customer';
   static const String login = 'auth/login';
-  static const String adminTeam = 'admin/team';
+  static const String adminTeam = 'admin/admins';
   static const String verify = 'auth/verify';
   static const String adminSetPassword = 'auth/admin/set-password';
   static const String auditLogs = 'admin/audit-logs';

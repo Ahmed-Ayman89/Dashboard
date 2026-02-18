@@ -441,9 +441,12 @@ class _DuesContent extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(page - 1) * limit + 1} to ${page * limit > total ? total : page * limit} of $total kiosks',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(page - 1) * limit + 1} to ${page * limit > total ? total : page * limit} of $total kiosks',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [

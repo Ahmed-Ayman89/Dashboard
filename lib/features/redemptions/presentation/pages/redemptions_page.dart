@@ -325,9 +325,12 @@ class _RedemptionsView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} redemptions',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} redemptions',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [
@@ -405,16 +408,19 @@ class _RedemptionsView extends StatelessWidget {
   }
 
   Widget _buildFilterChips(BuildContext context) {
-    return Row(
-      children: [
-        _buildFilterChip(context, 'PENDING', AppColors.warning),
-        const SizedBox(width: 8),
-        _buildFilterChip(context, 'COMPLETED', AppColors.success),
-        const SizedBox(width: 8),
-        _buildFilterChip(context, 'FAILED', AppColors.error),
-        const SizedBox(width: 8),
-        _buildFilterChip(context, 'REJECTED', AppColors.neutral600),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildFilterChip(context, 'PENDING', AppColors.warning),
+          const SizedBox(width: 8),
+          _buildFilterChip(context, 'COMPLETED', AppColors.success),
+          const SizedBox(width: 8),
+          _buildFilterChip(context, 'FAILED', AppColors.error),
+          const SizedBox(width: 8),
+          _buildFilterChip(context, 'REJECTED', AppColors.neutral600),
+        ],
+      ),
     );
   }
 

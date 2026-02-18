@@ -2,14 +2,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/admin_model.dart';
 import '../../domain/usecases/get_admins_usecase.dart';
 import '../../domain/usecases/create_admin_usecase.dart';
+import '../../domain/usecases/update_admin_usecase.dart';
+import '../../domain/usecases/delete_admin_usecase.dart';
 import 'admin_team_state.dart';
 
 class AdminTeamCubit extends Cubit<AdminTeamState> {
   final GetAdminsUseCase _getAdminsUseCase;
   final CreateAdminUseCase _createAdminUseCase;
+  final UpdateAdminUseCase _updateAdminUseCase;
+  final DeleteAdminUseCase _deleteAdminUseCase;
 
-  AdminTeamCubit(this._getAdminsUseCase, this._createAdminUseCase)
-      : super(AdminTeamInitial());
+  AdminTeamCubit(
+    this._getAdminsUseCase,
+    this._createAdminUseCase,
+    this._updateAdminUseCase,
+    this._deleteAdminUseCase,
+  ) : super(AdminTeamInitial());
 
   Future<void> getAdmins({int page = 1, int limit = 10}) async {
     emit(AdminTeamLoading());
@@ -67,6 +75,40 @@ class AdminTeamCubit extends Cubit<AdminTeamState> {
         emit(AdminTeamFailure(response.message ?? 'Failed to create admin'));
         // After failure, we might want to go back to Loaded state if we had data?
         // For now, failure will likely trigger a Snackbar.
+      }
+    } catch (e) {
+      if (isClosed) return;
+      emit(AdminTeamFailure(e.toString()));
+    }
+  }
+
+  Future<void> updateAdmin(String id, Map<String, dynamic> data) async {
+    emit(AdminTeamActionLoading());
+    try {
+      final response = await _updateAdminUseCase(id, data);
+      if (isClosed) return;
+      if (response.isSuccess) {
+        emit(const AdminTeamActionSuccess('Admin updated successfully'));
+        getAdmins();
+      } else {
+        emit(AdminTeamFailure(response.message ?? 'Failed to update admin'));
+      }
+    } catch (e) {
+      if (isClosed) return;
+      emit(AdminTeamFailure(e.toString()));
+    }
+  }
+
+  Future<void> deleteAdmin(String id) async {
+    emit(AdminTeamActionLoading());
+    try {
+      final response = await _deleteAdminUseCase(id);
+      if (isClosed) return;
+      if (response.isSuccess) {
+        emit(const AdminTeamActionSuccess('Admin deleted successfully'));
+        getAdmins();
+      } else {
+        emit(AdminTeamFailure(response.message ?? 'Failed to delete admin'));
       }
     } catch (e) {
       if (isClosed) return;

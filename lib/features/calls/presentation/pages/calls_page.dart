@@ -104,39 +104,50 @@ class _CallsViewState extends State<_CallsView> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Calls Management', style: AppTextStyle.heading1),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search calls...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                ),
-                onSubmitted: (value) {
-                  context.read<CallsCubit>().updateFilters(search: value);
-                },
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 600;
+
+        final searchField = TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search calls...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          ),
+          onSubmitted: (value) {
+            context.read<CallsCubit>().updateFilters(search: value);
+          },
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isWide)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Calls Management', style: AppTextStyle.heading1),
+                  SizedBox(width: 300, child: searchField),
+                ],
+              )
+            else ...[
+              Text('Calls Management', style: AppTextStyle.heading1),
+              const SizedBox(height: 16),
+              searchField,
+            ],
+            const SizedBox(height: 24),
+            _buildFilterChips(context),
           ],
-        ),
-        const SizedBox(height: 24),
-        _buildFilterChips(context),
-      ],
+        );
+      },
     );
   }
 
@@ -304,9 +315,12 @@ class _CallsViewState extends State<_CallsView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} calls',
-            style: AppTextStyle.caption,
+          Flexible(
+            child: Text(
+              'Showing ${(state.page - 1) * state.limit + 1} to ${state.page * state.limit > state.total ? state.total : state.page * state.limit} of ${state.total} calls',
+              style: AppTextStyle.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [

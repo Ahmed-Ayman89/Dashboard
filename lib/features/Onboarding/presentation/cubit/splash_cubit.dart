@@ -10,7 +10,7 @@ class SplashCubit extends Cubit<SplashState> {
 
   Future<void> checkAuth() async {
     emit(SplashLoading());
-    await Future.delayed(const Duration(seconds: 2)); // Min splash time
+    await Future.delayed(const Duration(seconds: 2));
 
     final token = LocalData.accessToken;
     if (token != null && token.isNotEmpty) {
@@ -34,6 +34,14 @@ class SplashCubit extends Cubit<SplashState> {
                 firstLogin == 'true') {
               isTemp = true;
             }
+          }
+
+          final role = data['data']['admin_role'] ??
+              data['data']['adminRole'] ??
+              data['data']['role'];
+          if (role != null) {
+            await LocalData.updateRoleAndPermissions(
+                userRole: role, permissions: []);
           }
 
           if (isTemp) {
