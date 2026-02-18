@@ -8,6 +8,8 @@ class AuditLogModel {
   final String? ipAddress;
   final DateTime createdAt;
 
+  final String summary;
+
   AuditLogModel({
     required this.id,
     required this.admin,
@@ -17,18 +19,36 @@ class AuditLogModel {
     this.details,
     this.ipAddress,
     required this.createdAt,
+    required this.summary,
   });
 
-  factory AuditLogModel.fromJson(Map<String, dynamic> json) {
+  factory AuditLogModel.fromJson(dynamic json) {
+    if (json is! Map<String, dynamic>) {
+      return AuditLogModel(
+        id: '',
+        admin: 'Unknown',
+        adminPhone: '',
+        action: '',
+        targetId: '',
+        createdAt: DateTime.now(),
+        summary: 'Invalid log data',
+      );
+    }
     return AuditLogModel(
-      id: json['id'],
-      admin: json['admin'],
-      adminPhone: json['admin_phone'],
-      action: json['action'],
-      targetId: json['target_id'],
-      details: json['details'],
-      ipAddress: json['ip_address'],
-      createdAt: DateTime.parse(json['created_at']),
+      id: json['id']?.toString() ?? '',
+      admin: json['admin']?.toString() ?? 'Unknown',
+      adminPhone: json['admin_phone']?.toString() ?? '',
+      action: json['action']?.toString() ?? '',
+      targetId: json['target_id']?.toString() ?? '',
+      details:
+          (json['details'] != null && json['details'] is Map<String, dynamic>)
+              ? json['details'] as Map<String, dynamic>
+              : null,
+      ipAddress: json['ip_address']?.toString(),
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      summary: json['summary']?.toString() ?? '',
     );
   }
 
@@ -42,6 +62,7 @@ class AuditLogModel {
       'details': details,
       'ip_address': ipAddress,
       'created_at': createdAt.toIso8601String(),
+      'summary': summary,
     };
   }
 }

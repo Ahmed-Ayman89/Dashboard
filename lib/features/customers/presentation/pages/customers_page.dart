@@ -203,7 +203,7 @@ class _CustomersViewState extends State<_CustomersView> {
                                     ],
                                   ),
                                 ),
-                                DataCell(Text('${customer.balance} EGP')),
+                                DataCell(Text('${customer.balance} Points')),
                                 DataCell(Text(
                                     customer.totalPointsReceived.toString())),
                                 DataCell(Text(

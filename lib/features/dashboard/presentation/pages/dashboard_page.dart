@@ -14,6 +14,7 @@ import 'package:dashboard_grow/features/settings/presentation/pages/settings_pag
 import 'package:dashboard_grow/features/dashboard/presentation/pages/audit_log_page.dart';
 import 'package:dashboard_grow/features/calls/presentation/pages/calls_page.dart';
 import 'package:dashboard_grow/features/admin_team/presentation/pages/admin_team_page.dart';
+import 'package:dashboard_grow/features/system_alerts/presentation/pages/alerts_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/nav_item.dart';
 import 'home_view.dart';
@@ -99,6 +100,10 @@ class _DashboardPageState extends State<DashboardPage> {
           title: 'Settings',
           icon: Icons.settings_rounded,
           destination: const SettingsPage()),
+      NavItem(
+          title: 'System Alerts',
+          icon: Icons.notifications_active_rounded,
+          destination: const AlertsPage()),
       NavItem(
           title: 'Audit Log',
           icon: Icons.history_rounded,

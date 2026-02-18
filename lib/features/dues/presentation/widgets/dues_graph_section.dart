@@ -70,7 +70,7 @@ class DuesGraphSection extends StatelessWidget {
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       final kioskName = chartData[group.x.toInt()].kioskName;
                       final amount = NumberFormat.currency(
-                              symbol: 'EGP ', decimalDigits: 0)
+                              symbol: 'Points ', decimalDigits: 0)
                           .format(rod.toY);
                       return BarTooltipItem(
                         '$kioskName\n',

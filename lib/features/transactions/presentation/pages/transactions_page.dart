@@ -170,13 +170,13 @@ class _TransactionsViewState extends State<_TransactionsView> {
                               .copyWith(fontFamily: 'monospace'))),
                       DataCell(_buildTypeBadge(transaction.type)),
                       DataCell(Text(
-                          '${transaction.amountGross.toStringAsFixed(2)} EGP',
+                          '${transaction.amountGross.toStringAsFixed(2)} Points',
                           style: AppTextStyle.bodySmall)),
                       DataCell(Text(
-                          '${transaction.commission.toStringAsFixed(2)} EGP',
+                          '${transaction.commission.toStringAsFixed(2)} Points',
                           style: AppTextStyle.bodySmall)),
                       DataCell(Text(
-                          '${transaction.amountNet.toStringAsFixed(2)} EGP',
+                          '${transaction.amountNet.toStringAsFixed(2)} Points',
                           style: AppTextStyle.bodySmall)),
                       DataCell(_buildStatusBadge(transaction.status)),
                       DataCell(Text(transaction.kiosk,

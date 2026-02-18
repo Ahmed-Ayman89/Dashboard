@@ -4,6 +4,7 @@ import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/filtered_analytics_chart.dart';
+import '../widgets/recent_activities_section.dart';
 import '../cubit/graph_cubit.dart';
 import '../cubit/dashboard_stats_cubit.dart';
 import '../cubit/dashboard_stats_state.dart';
@@ -53,17 +54,16 @@ class HomeView extends StatelessWidget {
               _buildKpiGrid(context, isMobile),
               SizedBox(height: isMobile ? 24 : 32),
               const FilteredAnalyticsChart(),
-              SizedBox(height: isMobile ? 24 : 32),
-              SizedBox(height: isMobile ? 24 : 32),
-              if (isMobile) ...{
-                const SizedBox(height: 24),
-              } else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 32),
-                  ],
-                ),
+              const SizedBox(height: 32),
+              BlocBuilder<DashboardStatsCubit, DashboardStatsState>(
+                builder: (context, state) {
+                  if (state is DashboardStatsSuccess) {
+                    return RecentActivitiesSection(stats: state.stats);
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),

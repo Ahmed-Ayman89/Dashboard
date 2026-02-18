@@ -211,7 +211,7 @@ class _WorkersViewState extends State<_WorkersView> {
                                       .toList(),
                                 )),
                                 DataCell(
-                                    Text('${worker.commissionEarned} EGP')),
+                                    Text('${worker.commissionEarned} Points')),
                                 DataCell(
                                     Text(worker.transactionsCount.toString())),
                                 DataCell(_buildStatusBadge(worker.isActive)),

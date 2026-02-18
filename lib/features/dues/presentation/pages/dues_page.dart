@@ -366,7 +366,7 @@ class _DuesContent extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Amount to Collect',
                 labelStyle: AppTextStyle.bodyMedium,
-                prefixText: 'EGP ',
+                prefixText: 'Points ',
                 prefixStyle: AppTextStyle.bodyRegular
                     .copyWith(fontWeight: FontWeight.bold),
                 border: OutlineInputBorder(

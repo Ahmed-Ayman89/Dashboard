@@ -243,7 +243,7 @@ class _WorkerDetailsView extends StatelessWidget {
                 : (constraints.maxWidth - 32) / 3,
             child: _buildInfoCard(
               title: 'Total Balance',
-              value: '${worker.balance.toStringAsFixed(2)} EGP',
+              value: '${worker.balance.toStringAsFixed(2)} Points',
               icon: Icons.account_balance_wallet,
               color: AppColors.primary,
             ),
@@ -493,7 +493,7 @@ class _WorkerDetailsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('+${tx.amountGross.toStringAsFixed(2)} EGP',
+                Text('+${tx.amountGross.toStringAsFixed(2)} Points',
                     style: AppTextStyle.bodySmall.copyWith(
                         fontWeight: FontWeight.bold, color: AppColors.success)),
                 Text('Comm: ${tx.commission.toStringAsFixed(2)}',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/features/dashboard/data/models/audit_log_model.dart';
@@ -95,40 +96,111 @@ class _AuditLogView extends StatelessWidget {
     if (state.logs.isEmpty) {
       return const Center(child: Text('No audit logs found.'));
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
+    return ListView.builder(
+      padding: const EdgeInsets.all(24),
       itemCount: state.logs.length,
-      separatorBuilder: (context, index) => const Divider(),
       itemBuilder: (context, index) {
         final log = state.logs[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.neutral100,
-            child:
-                const Icon(Icons.history_rounded, color: AppColors.neutral600),
-          ),
-          title: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(log.admin,
-                  style: AppTextStyle.bodySmall
-                      .copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
-              Text('performed', style: AppTextStyle.bodySmall),
-              const SizedBox(width: 8),
-              Text(log.action,
-                  style: AppTextStyle.bodySmall
-                      .copyWith(color: AppColors.primary)),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.neutral200.withOpacity(0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
             ],
           ),
-          subtitle: Text(
-              'Target: ${log.details?['details'] ?? log.targetId} • ${log.createdAt.toString()}',
-              style: AppTextStyle.caption),
-          trailing: const Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.neutral400),
+          child: ExpansionTile(
+            leading: CircleAvatar(
+              backgroundColor: _getActionColor(log.action).withOpacity(0.1),
+              child: Icon(_getActionIcon(log.action),
+                  color: _getActionColor(log.action), size: 20),
+            ),
+            title: Text(
+              log.summary,
+              style:
+                  AppTextStyle.bodySmall.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              '${DateFormat('MMM d, yyyy • hh:mm a').format(log.createdAt)} • IP: ${log.ipAddress ?? 'N/A'}',
+              style: AppTextStyle.caption.copyWith(color: AppColors.neutral500),
+            ),
+            childrenPadding: const EdgeInsets.all(16),
+            expandedCrossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(),
+              _buildDetailItem('Admin', '${log.admin} (${log.adminPhone})'),
+              _buildDetailItem('Action', log.action),
+              _buildDetailItem('Target ID', log.targetId),
+              if (log.details != null && log.details!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Details:',
+                    style: AppTextStyle.caption
+                        .copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    log.details.toString(),
+                    style:
+                        AppTextStyle.caption.copyWith(fontFamily: 'monospace'),
+                  ),
+                ),
+              ],
+            ],
+          ),
         );
       },
     );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: RichText(
+        text: TextSpan(
+          style: AppTextStyle.caption.copyWith(color: AppColors.neutral800),
+          children: [
+            TextSpan(
+                text: '$label: ',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: value),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getActionColor(String action) {
+    if (action.contains('DELETE')) return AppColors.error;
+    if (action.contains('UPDATE') || action.contains('EDIT')) {
+      return AppColors.warning;
+    }
+    if (action.contains('COLLECT')) return AppColors.success;
+    if (action.contains('LOGIN')) return AppColors.primary;
+    return AppColors.neutral600;
+  }
+
+  IconData _getActionIcon(String action) {
+    if (action.contains('DELETE')) return Icons.delete_outline_rounded;
+    if (action.contains('UPDATE') || action.contains('EDIT')) {
+      return Icons.edit_outlined;
+    }
+    if (action.contains('COLLECT')) {
+      return Icons.account_balance_wallet_outlined;
+    }
+    if (action.contains('LOGIN')) return Icons.login_rounded;
+    return Icons.history_rounded;
   }
 
   Widget _buildPagination(BuildContext context, AuditLogsSuccess state) {
@@ -178,7 +250,4 @@ class _AuditLogView extends StatelessWidget {
   }
 }
 
-// Note: Using a slightly different model in the UI for simplicity in dummy data display.
-extension on AuditLogModel {
-  // Add some logic if needed
-}
+extension on AuditLogModel {}

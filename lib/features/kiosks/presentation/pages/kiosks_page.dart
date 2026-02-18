@@ -232,7 +232,7 @@ class _KiosksView extends StatelessWidget {
                                         kiosk.dailyTransactions.toString())),
                                     DataCell(
                                       Text(
-                                        '${kiosk.pendingDues.toStringAsFixed(0)} EGP',
+                                        '${kiosk.pendingDues.toStringAsFixed(0)} Points',
                                         style: TextStyle(
                                           color: kiosk.pendingDues > 1000
                                               ? AppColors.error

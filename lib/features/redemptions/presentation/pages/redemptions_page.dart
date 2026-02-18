@@ -274,7 +274,7 @@ class _RedemptionsView extends StatelessWidget {
                           style: AppTextStyle.bodySmall)),
                       DataCell(_buildRoleBadge(redemption.userRole)),
                       DataCell(Text(
-                          '${redemption.amount.toStringAsFixed(2)} EGP',
+                          '${redemption.amount.toStringAsFixed(2)} Points',
                           style: AppTextStyle.bodySmall)),
                       DataCell(Text(redemption.method,
                           style: AppTextStyle.bodySmall)),

@@ -62,7 +62,7 @@ class AnalyticsChart extends StatelessWidget {
                       return touchedBarSpots.map((barSpot) {
                         final flSpot = barSpot;
                         return LineTooltipItem(
-                          '${flSpot.y.toInt()} EGP',
+                          '${flSpot.y.toInt()} Points',
                           AppTextStyle.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: chartColor,

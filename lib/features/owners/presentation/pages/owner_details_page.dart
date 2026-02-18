@@ -451,7 +451,8 @@ class _OwnerDetailsView extends StatelessWidget {
             width: cardWidth,
             child: _buildInfoCard(
               title: 'Wallet Balance',
-              value: '${owner.financials.walletBalance.toStringAsFixed(2)} EGP',
+              value:
+                  '${owner.financials.walletBalance.toStringAsFixed(2)} Points',
               icon: Icons.account_balance_wallet,
               color: AppColors.primary,
             ),
@@ -461,7 +462,7 @@ class _OwnerDetailsView extends StatelessWidget {
             child: _buildInfoCard(
               title: 'Total Commission',
               value:
-                  '${owner.financials.totalCommissionEarned.toStringAsFixed(2)} EGP',
+                  '${owner.financials.totalCommissionEarned.toStringAsFixed(2)} Points',
               icon: Icons.monetization_on,
               color: AppColors.success,
             ),
@@ -559,7 +560,7 @@ class _OwnerDetailsView extends StatelessWidget {
                   style: AppTextStyle.bodyMedium
                       .copyWith(fontWeight: FontWeight.bold)),
               subtitle: Text(
-                  '${kiosk.workersCount} Workers • ${kiosk.pendingDues.toStringAsFixed(2)} EGP Pending',
+                  '${kiosk.workersCount} Workers • ${kiosk.pendingDues.toStringAsFixed(2)} Points Pending',
                   style: AppTextStyle.caption),
               children: [
                 if (kiosk.workers.isNotEmpty)
@@ -654,7 +655,7 @@ class _OwnerDetailsView extends StatelessWidget {
                 trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${item.amount.toStringAsFixed(2)} EGP',
+                    Text('${item.amount.toStringAsFixed(2)} Points',
                         style: AppTextStyle.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppColors.error)),
@@ -690,7 +691,7 @@ class _OwnerDetailsView extends StatelessWidget {
                         style: AppTextStyle.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppColors.success)),
-                    Text('Comm: ${item.commission.toStringAsFixed(2)} EGP',
+                    Text('Comm: ${item.commission.toStringAsFixed(2)} Points',
                         style: AppTextStyle.caption
                             .copyWith(color: AppColors.neutral500)),
                   ],

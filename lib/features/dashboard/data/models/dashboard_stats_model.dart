@@ -141,6 +141,87 @@ class RedemptionRequestModel extends Equatable {
   List<Object?> get props => [id, amount, method, createdAt, user];
 }
 
+class KioskWithOverdueDues extends Equatable {
+  final String id;
+  final String amount;
+  final String createdAt;
+  final String? lastCollectedAt;
+  final KioskInfoWithOwner kiosk;
+
+  const KioskWithOverdueDues({
+    required this.id,
+    required this.amount,
+    required this.createdAt,
+    this.lastCollectedAt,
+    required this.kiosk,
+  });
+
+  factory KioskWithOverdueDues.fromJson(Map<String, dynamic> json) {
+    return KioskWithOverdueDues(
+      id: json['id'] as String? ?? '',
+      amount: json['amount']?.toString() ?? '0',
+      createdAt: json['created_at'] as String? ?? '',
+      lastCollectedAt: json['last_collected_at'] as String?,
+      kiosk: KioskInfoWithOwner.fromJson(
+          json['kiosk'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, amount, createdAt, lastCollectedAt, kiosk];
+}
+
+class KioskInfoWithOwner extends Equatable {
+  final String id;
+  final String name;
+  final UserInfo? owner;
+
+  const KioskInfoWithOwner({
+    required this.id,
+    required this.name,
+    this.owner,
+  });
+
+  factory KioskInfoWithOwner.fromJson(Map<String, dynamic> json) {
+    return KioskInfoWithOwner(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      owner: json['owner'] != null
+          ? UserInfo.fromJson(json['owner'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, name, owner];
+}
+
+class CustomerSignup extends Equatable {
+  final String id;
+  final String fullName;
+  final String phone;
+  final String createdAt;
+
+  const CustomerSignup({
+    required this.id,
+    required this.fullName,
+    required this.phone,
+    required this.createdAt,
+  });
+
+  factory CustomerSignup.fromJson(Map<String, dynamic> json) {
+    return CustomerSignup(
+      id: json['id'] as String? ?? '',
+      fullName: json['full_name'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, fullName, phone, createdAt];
+}
+
 class DashboardTotalsModel extends Equatable {
   final int kiosks;
   final int workers;
@@ -178,16 +259,16 @@ class DashboardStatsModel extends Equatable {
   final List<AlertModel> alerts;
   final List<OwnerModel> unapprovedOwners;
   final List<RedemptionRequestModel> redemptionRequests;
-  final int kiosksDuesCount;
-  final int customerSignupsCount;
+  final List<KioskWithOverdueDues> overdueDues;
+  final List<CustomerSignup> customerSignups;
   final DashboardTotalsModel totals;
 
   const DashboardStatsModel({
     required this.alerts,
     required this.unapprovedOwners,
     required this.redemptionRequests,
-    required this.kiosksDuesCount,
-    required this.customerSignupsCount,
+    required this.overdueDues,
+    required this.customerSignups,
     required this.totals,
   });
 
@@ -213,8 +294,13 @@ class DashboardStatsModel extends Equatable {
           .map((item) =>
               RedemptionRequestModel.fromJson(item as Map<String, dynamic>))
           .toList(),
-      kiosksDuesCount: duesList.length,
-      customerSignupsCount: signupsList.length,
+      overdueDues: duesList
+          .map((item) =>
+              KioskWithOverdueDues.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      customerSignups: signupsList
+          .map((item) => CustomerSignup.fromJson(item as Map<String, dynamic>))
+          .toList(),
       totals: DashboardTotalsModel.fromJson(
           data['totals'] as Map<String, dynamic>? ?? {}),
     );
@@ -228,6 +314,9 @@ class DashboardStatsModel extends Equatable {
                 type: alert.type,
                 severity: alert.severity,
                 message: alert.message,
+                createdAt: alert.createdAt,
+                userName: alert.user?.fullName,
+                kioskName: alert.kiosk?.name,
               ))
           .toList(),
       unapprovedOwners: unapprovedOwners
@@ -242,10 +331,28 @@ class DashboardStatsModel extends Equatable {
                 id: request.id,
                 amount: request.amount,
                 method: request.method,
+                createdAt: request.createdAt,
+                userName: request.user?.fullName,
               ))
           .toList(),
-      kiosksDuesCount: kiosksDuesCount,
-      customerSignupsCount: customerSignupsCount,
+      overdueDues: overdueDues
+          .map((due) => OverdueDueEntity(
+                id: due.id,
+                amount: due.amount,
+                createdAt: due.createdAt,
+                lastCollectedAt: due.lastCollectedAt,
+                kioskName: due.kiosk.name,
+                ownerName: due.kiosk.owner?.fullName ?? 'Unknown',
+              ))
+          .toList(),
+      customerSignups: customerSignups
+          .map((signup) => CustomerSignupEntity(
+                id: signup.id,
+                fullName: signup.fullName,
+                phone: signup.phone,
+                createdAt: signup.createdAt,
+              ))
+          .toList(),
       totals: DashboardTotals(
         kiosks: totals.kiosks,
         workers: totals.workers,
@@ -262,8 +369,8 @@ class DashboardStatsModel extends Equatable {
         alerts,
         unapprovedOwners,
         redemptionRequests,
-        kiosksDuesCount,
-        customerSignupsCount,
+        overdueDues,
+        customerSignups,
         totals
       ];
 }

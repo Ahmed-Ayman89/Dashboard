@@ -16,19 +16,20 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
       if (isClosed) return;
 
       if (response.isSuccess) {
-        final data = response.data['data'];
-        final List<dynamic> logsJson = data['logs'];
+        final List<dynamic> logsJson = response.data['data'] ?? [];
         final logs =
             logsJson.map((json) => AuditLogModel.fromJson(json)).toList();
-        final total = data['total'];
-        final currentPage = data['page'];
-        final currentLimit = data['limit'];
+
+        final pagination = response.data['pagination'];
+        final total = pagination != null ? pagination['total'] : logs.length;
+        final currentPage = pagination != null ? pagination['page'] : 1;
+        final currentLimit = pagination != null ? pagination['limit'] : 20;
 
         emit(AuditLogsSuccess(
           logs: logs,
-          total: total,
-          page: currentPage,
-          limit: currentLimit,
+          total: total ?? 0,
+          page: currentPage ?? 1,
+          limit: currentLimit ?? 20,
         ));
       } else {
         emit(AuditLogsFailure(response.message ?? 'Failed to fetch audit logs',

@@ -338,7 +338,7 @@ class _CustomerDetailsView extends StatelessWidget {
                   controller: amountController,
                   style: AppTextStyle.bodyRegular,
                   decoration: InputDecoration(
-                    labelText: 'Amount (EGP)',
+                    labelText: 'Amount (Points)',
                     hintText: 'e.g., 50 or -50',
                     hintStyle: AppTextStyle.caption,
                     labelStyle: AppTextStyle.bodyMedium,
@@ -637,7 +637,7 @@ class _CustomerDetailsView extends StatelessWidget {
             width: cardWidth,
             child: _buildInfoCard(
               title: 'Total Balance',
-              value: '${customer.balance.toStringAsFixed(2)} EGP',
+              value: '${customer.balance.toStringAsFixed(2)} Points',
               icon: Icons.account_balance_wallet,
               color: AppColors.primary,
             ),
@@ -833,7 +833,7 @@ class _CustomerDetailsView extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${interaction.totalReceived.toStringAsFixed(0)} EGP',
+                  Text('${interaction.totalReceived.toStringAsFixed(0)} Points',
                       style: AppTextStyle.bodySmall.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.success)),
@@ -877,7 +877,7 @@ class _CustomerDetailsView extends StatelessWidget {
             subtitle: Text(
                 DateFormat('MMM d, yyyy - hh:mm a').format(tx.createdAt),
                 style: AppTextStyle.caption),
-            trailing: Text('+${tx.amount.toStringAsFixed(2)} EGP',
+            trailing: Text('+${tx.amount.toStringAsFixed(2)} Points',
                 style: AppTextStyle.bodySmall.copyWith(
                     fontWeight: FontWeight.bold, color: AppColors.success)),
           );
