@@ -1,22 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_kiosk_details_usecase.dart';
-import '../../domain/usecases/update_kiosk_usecase.dart';
-import '../../domain/usecases/change_kiosk_status_usecase.dart';
-import '../../domain/usecases/adjust_kiosk_dues_usecase.dart';
-import '../../../dashboard/data/models/kiosk_detail_model.dart';
-import 'kiosk_details_state.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/get_kiosk_details_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/update_kiosk_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/change_kiosk_status_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/adjust_kiosk_dues_usecase.dart';
+import 'package:dashboard_grow/features/dues/domain/usecases/collect_due_usecase.dart';
+import 'package:dashboard_grow/features/dashboard/data/models/kiosk_detail_model.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/cubit/kiosk_details_state.dart';
 
 class KioskDetailsCubit extends Cubit<KioskDetailsState> {
   final GetKioskDetailsUseCase _getKioskDetailsUseCase;
   final UpdateKioskUseCase _updateKioskUseCase;
   final ChangeKioskStatusUseCase _changeKioskStatusUseCase;
   final AdjustKioskDuesUseCase _adjustKioskDuesUseCase;
+  final CollectDueUseCase _collectDueUseCase;
 
   KioskDetailsCubit(
     this._getKioskDetailsUseCase,
     this._updateKioskUseCase,
     this._changeKioskStatusUseCase,
     this._adjustKioskDuesUseCase,
+    this._collectDueUseCase,
   ) : super(KioskDetailsInitial());
 
   Future<void> getKioskDetails(String id) async {
@@ -86,6 +89,21 @@ class KioskDetailsCubit extends Cubit<KioskDetailsState> {
         emit(KioskDetailsFailure(response.message ?? 'Adjust dues failed',
             error: response.error));
       }
+    } catch (e) {
+      if (isClosed) return;
+      emit(KioskDetailsFailure(e.toString()));
+    }
+  }
+
+  Future<void> collectDue(String kioskId, String dueId, double amount) async {
+    try {
+      final result = await _collectDueUseCase(dueId, amount);
+      if (isClosed) return;
+
+      result.fold(
+        (failure) => emit(KioskDetailsFailure(failure.message)),
+        (success) => getKioskDetails(kioskId), // Refresh data
+      );
     } catch (e) {
       if (isClosed) return;
       emit(KioskDetailsFailure(e.toString()));

@@ -197,21 +197,24 @@ class _AdminTeamViewState extends State<_AdminTeamView> {
                                           },
                                           tooltip: 'View Activities',
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.edit,
-                                              color: AppColors.neutral500),
-                                          onPressed: () => _showEditAdminDialog(
-                                              context, admin),
-                                          tooltip: 'Edit Admin',
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete,
-                                              color: AppColors.error),
-                                          onPressed: () =>
-                                              _showDeleteConfirmation(
-                                                  context, admin),
-                                          tooltip: 'Delete Admin',
-                                        ),
+                                        if (_userRole == 'SUPER_ADMIN') ...[
+                                          IconButton(
+                                            icon: const Icon(Icons.edit,
+                                                color: AppColors.neutral500),
+                                            onPressed: () =>
+                                                _showEditAdminDialog(
+                                                    context, admin),
+                                            tooltip: 'Edit Admin',
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: AppColors.error),
+                                            onPressed: () =>
+                                                _showDeleteConfirmation(
+                                                    context, admin),
+                                            tooltip: 'Delete Admin',
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -362,7 +365,7 @@ class _AdminTeamViewState extends State<_AdminTeamView> {
 
   Widget _buildStatusBadge(String status) {
     Color color = AppColors.neutral500;
-    if (status == 'APPROVED') color = AppColors.success;
+    if (status == 'APPROVED' || status == 'ACTIVE') color = AppColors.success;
     if (status == 'PENDING') color = AppColors.warning;
 
     return Container(

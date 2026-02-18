@@ -1,4 +1,5 @@
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/helper/role_helper.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/features/owners/data/models/owner_details_model.dart';
 import 'package:dashboard_grow/features/owners/data/repositories/owners_repository_impl.dart';
@@ -232,31 +233,41 @@ class _OwnerDetailsView extends StatelessWidget {
   }
 
   Widget _buildActionButton(BuildContext context, OwnerProfile profile) {
-    List<Widget> actions = [];
+    return FutureBuilder<bool>(
+      future: RoleHelper.canTakeActions(),
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
 
-    if (profile.status.toUpperCase() == 'PENDING') {
-      actions.add(_buildActionBtn(
-          context, 'Adjust Status', Icons.edit_note, AppColors.primary, () {
-        _showActionSelectionDialog(context, profile.id, ['VERIFY', 'REJECT']);
-      }));
-    } else if (profile.status.toUpperCase() == 'ACTIVE' ||
-        profile.status.toUpperCase() == 'APPROVED') {
-      actions.add(_buildActionBtn(
-          context, 'Adjust Status', Icons.warning_amber, AppColors.warning, () {
-        _showActionSelectionDialog(context, profile.id, ['FREEZE', 'DELETE']);
-      }));
-    } else if (profile.status.toUpperCase() == 'SUSPENDED' ||
-        profile.status.toUpperCase() == 'FROZEN' ||
-        profile.status.toUpperCase() == 'REJECTED') {
-      actions.add(_buildActionBtn(
-          context, 'Activate', Icons.check_circle, AppColors.success, () {
-        _showActionDialog(context, profile.id, 'ACTIVATE');
-      }));
-    }
+        List<Widget> actions = [];
 
-    if (actions.isEmpty) return const SizedBox.shrink();
+        if (profile.status.toUpperCase() == 'PENDING') {
+          actions.add(_buildActionBtn(
+              context, 'Adjust Status', Icons.edit_note, AppColors.primary, () {
+            _showActionSelectionDialog(
+                context, profile.id, ['VERIFY', 'REJECT']);
+          }));
+        } else if (profile.status.toUpperCase() == 'ACTIVE' ||
+            profile.status.toUpperCase() == 'APPROVED') {
+          actions.add(_buildActionBtn(
+              context, 'Adjust Status', Icons.warning_amber, AppColors.warning,
+              () {
+            _showActionSelectionDialog(
+                context, profile.id, ['FREEZE', 'DELETE']);
+          }));
+        } else if (profile.status.toUpperCase() == 'SUSPENDED' ||
+            profile.status.toUpperCase() == 'FROZEN' ||
+            profile.status.toUpperCase() == 'REJECTED') {
+          actions.add(_buildActionBtn(
+              context, 'Activate', Icons.check_circle, AppColors.success, () {
+            _showActionDialog(context, profile.id, 'ACTIVATE');
+          }));
+        }
 
-    return Row(children: actions);
+        if (actions.isEmpty) return const SizedBox.shrink();
+
+        return Row(children: actions);
+      },
+    );
   }
 
   Widget _buildActionBtn(BuildContext context, String label, IconData icon,

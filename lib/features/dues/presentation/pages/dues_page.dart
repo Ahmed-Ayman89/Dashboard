@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/helper/role_helper.dart';
 import 'package:dashboard_grow/core/network/api_helper.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/features/dues/data/datasources/dues_remote_data_source.dart';
@@ -312,14 +313,20 @@ class _DuesContent extends StatelessWidget {
       );
     }
 
-    return ElevatedButton(
-      onPressed: () => _showCollectDialog(context, due),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.brandPrimary.withOpacity(0.1),
-        foregroundColor: AppColors.brandPrimary,
-        elevation: 0,
-      ),
-      child: const Text('Collect'),
+    return FutureBuilder<bool>(
+      future: RoleHelper.canTakeActions(),
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
+        return ElevatedButton(
+          onPressed: () => _showCollectDialog(context, due),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brandPrimary.withOpacity(0.1),
+            foregroundColor: AppColors.brandPrimary,
+            elevation: 0,
+          ),
+          child: const Text('Collect'),
+        );
+      },
     );
   }
 

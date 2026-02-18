@@ -1,4 +1,5 @@
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/helper/role_helper.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/features/redemptions/data/repositories/redemptions_repository_impl.dart';
 import 'package:dashboard_grow/features/redemptions/domain/usecases/get_redemptions_usecase.dart';
@@ -161,16 +162,12 @@ class _RedemptionsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Redemptions Requests', style: AppTextStyle.heading2),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: _buildFilterChips(context),
-                  ),
-                ),
+                const SizedBox(height: 16),
+                _buildFilterChips(context),
               ],
             ),
             const SizedBox(height: 24),
@@ -285,22 +282,31 @@ class _RedemptionsView extends StatelessWidget {
                           style: AppTextStyle.bodySmall)),
                       DataCell(_buildStatusBadge(redemption.status)),
                       DataCell(
-                        ElevatedButton(
-                          onPressed: isPending
-                              ? () => _showProcessDialog(context, redemption.id)
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isPending
-                                ? AppColors.primary
-                                : AppColors.neutral300,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                          ),
-                          child: Text(
-                            isPending ? 'Process' : 'Processed',
-                            style: AppTextStyle.setCairoWhite(
-                                fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
+                        FutureBuilder<bool>(
+                          future: RoleHelper.canTakeActions(),
+                          builder: (context, snapshot) {
+                            if (snapshot.data != true) {
+                              return const SizedBox.shrink();
+                            }
+                            return ElevatedButton(
+                              onPressed: isPending
+                                  ? () =>
+                                      _showProcessDialog(context, redemption.id)
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isPending
+                                    ? AppColors.primary
+                                    : AppColors.neutral300,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                              ),
+                              child: Text(
+                                isPending ? 'Process' : 'Processed',
+                                style: AppTextStyle.setCairoWhite(
+                                    fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ]);

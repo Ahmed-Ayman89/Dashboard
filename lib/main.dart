@@ -25,9 +25,9 @@ void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     // Initialize APIHelper and wait for it
-    APIHelper.init();
+    await APIHelper.init();
     // Initialize LocalData and wait for it
-    LocalData.init();
+    await LocalData.init();
 
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||

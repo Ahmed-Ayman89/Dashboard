@@ -1,4 +1,5 @@
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/helper/role_helper.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/core/widgets/custom_snackbar.dart';
 import 'package:dashboard_grow/features/workers/data/models/worker_details_model.dart';
@@ -69,16 +70,22 @@ class _WorkerDetailsView extends StatelessWidget {
           BlocBuilder<WorkerDetailsCubit, WorkerDetailsState>(
             builder: (context, state) {
               if (state is WorkerDetailsLoaded) {
-                final isBanned = !state.worker.profile.isActive;
-                return IconButton(
-                  icon: Icon(
-                    isBanned ? Icons.check_circle_outline : Icons.block,
-                    color: isBanned ? AppColors.success : AppColors.error,
-                  ),
-                  tooltip: isBanned ? 'Unban Worker' : 'Ban Worker',
-                  onPressed: () {
-                    _showBanConfirmationDialog(
-                        context, state.worker.profile.id, isBanned);
+                return FutureBuilder<bool>(
+                  future: RoleHelper.canTakeActions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.data != true) return const SizedBox.shrink();
+                    final isBanned = !state.worker.profile.isActive;
+                    return IconButton(
+                      icon: Icon(
+                        isBanned ? Icons.check_circle_outline : Icons.block,
+                        color: isBanned ? AppColors.success : AppColors.error,
+                      ),
+                      tooltip: isBanned ? 'Unban Worker' : 'Ban Worker',
+                      onPressed: () {
+                        _showBanConfirmationDialog(
+                            context, state.worker.profile.id, isBanned);
+                      },
+                    );
                   },
                 );
               }
@@ -366,16 +373,24 @@ class _WorkerDetailsView extends StatelessWidget {
                       children: [
                         _buildStatusBadge(kiosk.status == 'ACTIVE'),
                         const SizedBox(width: 12),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline,
-                              color: AppColors.error),
-                          tooltip: 'Remove from Kiosk',
-                          onPressed: () {
-                            _showDeleteConfirmationDialog(
-                                context,
-                                kiosk.kioskId,
-                                kiosk.kioskName,
-                                kiosk.profileId);
+                        FutureBuilder<bool>(
+                          future: RoleHelper.canTakeActions(),
+                          builder: (context, snapshot) {
+                            if (snapshot.data != true) {
+                              return const SizedBox.shrink();
+                            }
+                            return IconButton(
+                              icon: const Icon(Icons.delete_outline,
+                                  color: AppColors.error),
+                              tooltip: 'Remove from Kiosk',
+                              onPressed: () {
+                                _showDeleteConfirmationDialog(
+                                    context,
+                                    kiosk.kioskId,
+                                    kiosk.kioskName,
+                                    kiosk.profileId);
+                              },
+                            );
                           },
                         ),
                       ],

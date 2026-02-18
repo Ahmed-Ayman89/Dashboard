@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dashboard_grow/core/helper/app_text_style.dart';
+import 'package:dashboard_grow/core/helper/role_helper.dart';
 import 'package:dashboard_grow/core/theme/app_colors.dart';
 import 'package:dashboard_grow/features/dashboard/data/models/kiosk_detail_model.dart';
-import '../../data/repositories/kiosks_repository_impl.dart';
-import '../../domain/usecases/get_kiosk_details_usecase.dart';
-import '../../domain/usecases/update_kiosk_usecase.dart';
-import '../../domain/usecases/get_kiosk_graph_usecase.dart';
-import '../cubit/kiosk_graph_cubit.dart';
-import '../widgets/kiosk_graph_section.dart';
-import '../../domain/usecases/change_kiosk_status_usecase.dart';
-import '../../domain/usecases/adjust_kiosk_dues_usecase.dart';
-import '../cubit/kiosk_details_cubit.dart';
-import '../cubit/kiosk_details_state.dart';
-import 'kiosk_dues_details_page.dart';
+import 'package:dashboard_grow/core/network/api_helper.dart';
+import 'package:flutter/services.dart';
+import 'package:dashboard_grow/features/kiosks/data/repositories/kiosks_repository_impl.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/get_kiosk_details_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/update_kiosk_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/get_kiosk_graph_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/cubit/kiosk_graph_cubit.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/widgets/kiosk_graph_section.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/change_kiosk_status_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/domain/usecases/adjust_kiosk_dues_usecase.dart';
+import 'package:dashboard_grow/features/dues/data/datasources/dues_remote_data_source.dart';
+import 'package:dashboard_grow/features/dues/data/repositories/dues_repository_impl.dart';
+import 'package:dashboard_grow/features/dues/domain/usecases/collect_due_usecase.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/cubit/kiosk_details_cubit.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/cubit/kiosk_details_state.dart';
+import 'package:dashboard_grow/features/kiosks/presentation/pages/kiosk_dues_details_page.dart';
 
 class KioskDetailsPage extends StatelessWidget {
   final String kioskId;
@@ -27,11 +33,17 @@ class KioskDetailsPage extends StatelessWidget {
         BlocProvider(
           create: (context) {
             final repository = KiosksRepositoryImpl();
+            final duesRepository = DuesRepositoryImpl(
+              remoteDataSource: DuesRemoteDataSourceImpl(
+                apiHelper: APIHelper(),
+              ),
+            );
             return KioskDetailsCubit(
               GetKioskDetailsUseCase(repository),
               UpdateKioskUseCase(repository),
               ChangeKioskStatusUseCase(repository),
               AdjustKioskDuesUseCase(repository),
+              CollectDueUseCase(repository: duesRepository),
             )..getKioskDetails(kioskId);
           },
         ),
@@ -163,14 +175,28 @@ class _KioskDetailsView extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined,
-                              color: AppColors.primary),
-                          onPressed: () => _showUpdateDialog(context, profile),
-                          tooltip: 'Edit Kiosk',
+                        FutureBuilder<bool>(
+                          future: RoleHelper.canTakeActions(),
+                          builder: (context, snapshot) {
+                            if (snapshot.data != true) {
+                              return const SizedBox.shrink();
+                            }
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined,
+                                      color: AppColors.primary),
+                                  onPressed: () =>
+                                      _showUpdateDialog(context, profile),
+                                  tooltip: 'Edit Kiosk',
+                                ),
+                                const SizedBox(width: 4),
+                                _buildStatusActionButton(context, profile),
+                              ],
+                            );
+                          },
                         ),
-                        const SizedBox(width: 4),
-                        _buildStatusActionButton(context, profile),
                       ],
                     ),
                   ],
@@ -327,14 +353,105 @@ class _KioskDetailsView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${(dues.amount ?? 0).toStringAsFixed(0)} Points',
-                  style:
-                      AppTextStyle.heading2.copyWith(color: AppColors.primary)),
+              Expanded(
+                child: Text('${(dues.amount ?? 0).toStringAsFixed(0)} Points',
+                    style: AppTextStyle.heading2
+                        .copyWith(color: AppColors.primary)),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           _buildDetailRow('Status', dues.isPaid ? 'Paid' : 'Unpaid',
               isError: !dues.isPaid),
+          if (!dues.isPaid) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () =>
+                    _showCollectDueDialog(context, kioskId, dues.id!),
+                icon: const Icon(Icons.add_card),
+                label: const Text('Collect Dues'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showCollectDueDialog(
+      BuildContext context, String kioskId, String dueId) {
+    final amountController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Collect Dues', style: AppTextStyle.heading3),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: amountController,
+                style: AppTextStyle.bodyRegular,
+                decoration: _buildInputDecoration('Amount',
+                    hint: 'Enter amount to collect'),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Amount is required';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Cancel',
+                style: AppTextStyle.button
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final amount = double.parse(amountController.text);
+                context.read<KioskDetailsCubit>().collectDue(
+                      kioskId,
+                      dueId,
+                      amount,
+                    );
+                Navigator.pop(dialogContext);
+              }
+            },
+            child: Text('Collect', style: AppTextStyle.button),
+          ),
         ],
       ),
     );

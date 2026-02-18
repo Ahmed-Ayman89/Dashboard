@@ -105,7 +105,7 @@ class _DashboardPageState extends State<DashboardPage> {
           destination: const AuditLogPage()),
     ];
 
-    if (role == 'VIEWER') {
+    if (role != 'SUPER_ADMIN') {
       allItems.removeWhere((item) => item.title == 'Admin Team');
     }
 

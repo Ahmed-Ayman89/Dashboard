@@ -35,7 +35,7 @@ class AdminRemoteDataSource {
       {int page = 1, int limit = 20}) async {
     try {
       final response = await APIHelper().getRequest(
-        endPoint: '${EndPoints.adminTeam}/$id/activities',
+        endPoint: '${EndPoints.adminTeamDetails}/$id/activities',
         queryParameters: {
           'page': page,
           'limit': limit,
@@ -50,7 +50,7 @@ class AdminRemoteDataSource {
   Future<ApiResponse> updateAdmin(String id, Map<String, dynamic> data) async {
     try {
       final response = await APIHelper().putRequest(
-        endPoint: '${EndPoints.adminTeam}/$id',
+        endPoint: '${EndPoints.adminTeamDetails}/$id',
         data: data,
         isFormData: false,
       );
@@ -63,7 +63,7 @@ class AdminRemoteDataSource {
   Future<ApiResponse> deleteAdmin(String id) async {
     try {
       final response = await APIHelper().deleteRequest(
-        endPoint: '${EndPoints.adminTeam}/$id',
+        endPoint: '${EndPoints.adminTeamDetails}/$id',
       );
       return response;
     } catch (e) {

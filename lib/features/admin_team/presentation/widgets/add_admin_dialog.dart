@@ -19,7 +19,7 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
   final _phoneController = TextEditingController();
   String? _selectedRole;
 
-  final List<String> _roles = ['SUPER_ADMIN', 'EDITOR', 'VIEWER'];
+  final List<String> _roles = ['EDITOR', 'VIEWER'];
 
   @override
   void dispose() {
