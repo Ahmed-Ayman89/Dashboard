@@ -94,6 +94,8 @@ class _OwnerGraphSectionState extends State<OwnerGraphSection> {
             spots: spots,
             xAxisLabels: xAxisLabels,
             chartColor: AppColors.brandPrimary,
+            totalCount: state.graphData.totalCount,
+            totalVolume: state.graphData.totalVolume,
           ),
         ],
       );

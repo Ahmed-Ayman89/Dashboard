@@ -15,6 +15,7 @@ import 'package:dashboard_grow/features/dashboard/presentation/pages/audit_log_p
 import 'package:dashboard_grow/features/calls/presentation/pages/calls_page.dart';
 import 'package:dashboard_grow/features/admin_team/presentation/pages/admin_team_page.dart';
 import 'package:dashboard_grow/features/system_alerts/presentation/pages/alerts_page.dart';
+import 'package:dashboard_grow/features/shadow_accounts/presentation/pages/shadow_accounts_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/nav_item.dart';
 import 'home_view.dart';
@@ -96,6 +97,10 @@ class _DashboardPageState extends State<DashboardPage> {
           title: 'Calls',
           icon: Icons.call_rounded,
           destination: const CallsPage()),
+      NavItem(
+          title: 'Shadow Accounts',
+          icon: Icons.account_balance_rounded,
+          destination: const ShadowAccountsPage()),
       NavItem(
           title: 'Settings',
           icon: Icons.settings_rounded,

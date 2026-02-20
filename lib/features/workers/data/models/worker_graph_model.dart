@@ -4,6 +4,8 @@ class WorkerGraphModel {
   final String period;
   final String interval;
   final List<WorkerGraphDataPoint> data;
+  final int totalCount;
+  final double totalVolume;
 
   WorkerGraphModel({
     required this.workerId,
@@ -11,6 +13,8 @@ class WorkerGraphModel {
     required this.period,
     required this.interval,
     required this.data,
+    this.totalCount = 0,
+    this.totalVolume = 0,
   });
 
   factory WorkerGraphModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,8 @@ class WorkerGraphModel {
       data: (json['data'] as List? ?? [])
           .map((e) => WorkerGraphDataPoint.fromJson(e))
           .toList(),
+      totalCount: json['total_count'] ?? 0,
+      totalVolume: (json['total_volume'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

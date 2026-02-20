@@ -203,6 +203,8 @@ class _WorkerGraphSectionState extends State<WorkerGraphSection> {
       spots: spots,
       xAxisLabels: xAxisLabels,
       chartColor: AppColors.brandPrimary,
+      totalCount: state.graphData.totalCount,
+      totalVolume: state.graphData.totalVolume,
     );
   }
 }

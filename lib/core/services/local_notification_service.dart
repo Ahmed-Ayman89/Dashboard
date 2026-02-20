@@ -5,6 +5,8 @@ class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  static final Set<String> _handledMessageIds = {};
+
   static Future<void> initialize() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
@@ -51,6 +53,21 @@ class LocalNotificationService {
   @pragma('vm:entry-point')
   static Future<void> display(RemoteMessage message) async {
     try {
+      final messageId = message.messageId;
+      if (messageId != null) {
+        if (_handledMessageIds.contains(messageId)) {
+          print(
+              'LocalNotificationService: Message $messageId already handled, skipping.');
+          return;
+        }
+        _handledMessageIds.add(messageId);
+
+        // Keep the set size manageable
+        if (_handledMessageIds.length > 100) {
+          _handledMessageIds.remove(_handledMessageIds.first);
+        }
+      }
+
       print('LocalNotificationService: Displaying notification...');
       final notification = message.notification;
       final data = message.data;
@@ -60,8 +77,12 @@ class LocalNotificationService {
       String? body = notification?.body ?? data['body'];
 
       if (title != null || body != null) {
+        // Use message.messageId hash code or message hash code as ID to ensure it's always an int
+        // fallback to current time if both are somehow null
+        int notificationId = message.messageId?.hashCode ?? message.hashCode;
+
         await _notificationsPlugin.show(
-          notification.hashCode,
+          notificationId,
           title,
           body,
           NotificationDetails(

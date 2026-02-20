@@ -13,20 +13,20 @@ import 'features/Onboarding/splash_screen.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-
   print('Handling background message: ${message.messageId}');
-
-  await LocalNotificationService.initialize();
-
-  await LocalNotificationService.display(message);
+  if (message.notification == null) {
+    await LocalNotificationService.initialize();
+    await LocalNotificationService.display(message);
+  } else {
+    print(
+        'Notification payload present, skipping manual display in background.');
+  }
 }
 
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    // Initialize APIHelper and wait for it
     await APIHelper.init();
-    // Initialize LocalData and wait for it
     await LocalData.init();
 
     if (!kIsWeb &&

@@ -17,16 +17,16 @@ class KioskDetailModel {
 
   factory KioskDetailModel.fromJson(Map<String, dynamic> json) {
     return KioskDetailModel(
-      profile: KioskProfile.fromJson(json['profile']),
-      owner: KioskOwnerDetail.fromJson(json['owner']),
+      profile: KioskProfile.fromJson(json['profile'] ?? {}),
+      owner: KioskOwnerDetail.fromJson(json['owner'] ?? {}),
       workers: (json['workers'] as List?)
-              ?.map((e) => KioskWorker.fromJson(e))
+              ?.map((e) => KioskWorker.fromJson(e ?? {}))
               .toList() ??
           [],
       topRecipients: json['top_recipients'] ?? [],
-      dues: KioskDues.fromJson(json['dues']),
+      dues: KioskDues.fromJson(json['dues'] ?? {}),
       goals: (json['goals'] as List?)
-              ?.map((e) => KioskGoal.fromJson(e))
+              ?.map((e) => KioskGoal.fromJson(e ?? {}))
               .toList() ??
           [],
     );
@@ -54,13 +54,15 @@ class KioskProfile {
 
   factory KioskProfile.fromJson(Map<String, dynamic> json) {
     return KioskProfile(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       location: json['location'],
       address: json['address'],
       kioskType: json['kiosk_type'],
-      isActive: json['is_active'],
-      createdAt: DateTime.parse(json['created_at']),
+      isActive: json['is_active'] ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
     );
   }
 }
@@ -78,9 +80,9 @@ class KioskOwnerDetail {
 
   factory KioskOwnerDetail.fromJson(Map<String, dynamic> json) {
     return KioskOwnerDetail(
-      id: json['id'],
-      fullName: json['full_name'],
-      phone: json['phone'],
+      id: json['id'] ?? '',
+      fullName: json['full_name'] ?? '',
+      phone: json['phone'] ?? '',
     );
   }
 }
@@ -123,10 +125,10 @@ class KioskGoal {
 
   factory KioskGoal.fromJson(Map<String, dynamic> json) {
     return KioskGoal(
-      id: json['id'],
-      title: json['title'],
-      target: json['target'],
-      status: json['status'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      target: json['target'] ?? 0,
+      status: json['status'] ?? '',
       deadline:
           json['deadline'] != null ? DateTime.parse(json['deadline']) : null,
     );
@@ -148,10 +150,10 @@ class KioskWorker {
 
   factory KioskWorker.fromJson(Map<String, dynamic> json) {
     return KioskWorker(
-      id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      status: json['status'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      status: json['status'] ?? '',
     );
   }
 }

@@ -19,13 +19,18 @@ class GraphEntity extends Equatable {
   final List<GraphDataPoint> dataPoints;
   final String filter;
   final String resource;
+  final int totalCount;
+  final double totalVolume;
 
   const GraphEntity({
     required this.dataPoints,
     required this.filter,
     required this.resource,
+    this.totalCount = 0,
+    this.totalVolume = 0,
   });
 
   @override
-  List<Object?> get props => [dataPoints, filter, resource];
+  List<Object?> get props =>
+      [dataPoints, filter, resource, totalCount, totalVolume];
 }

@@ -58,6 +58,12 @@ class NotificationService {
         print('Message data: ${message.data}');
         print(
             'Message notification: ${message.notification?.title} - ${message.notification?.body}');
+
+        // If the message has a notification payload AND the app is in the foreground,
+        // we show it manually. However, if the user reports double notifications,
+        // it might be because the backend is sending a separate data message or
+        // the system is showing it anyway. For now, deduplication in LocalNotificationService
+        // should handle the duplicate messageId case.
         LocalNotificationService.display(message);
       });
 

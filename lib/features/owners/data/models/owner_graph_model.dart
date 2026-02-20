@@ -4,6 +4,8 @@ class OwnerGraphModel {
   final String period;
   final String interval;
   final List<OwnerGraphDataPoint> data;
+  final int totalCount;
+  final double totalVolume;
 
   OwnerGraphModel({
     required this.ownerId,
@@ -11,17 +13,21 @@ class OwnerGraphModel {
     required this.period,
     required this.interval,
     required this.data,
+    this.totalCount = 0,
+    this.totalVolume = 0,
   });
 
   factory OwnerGraphModel.fromJson(Map<String, dynamic> json) {
     return OwnerGraphModel(
       ownerId: json['owner_id'] ?? '',
       resource: json['resource'] ?? '',
-      period: json['period'] ?? 'Weekly', // Default to Weekly if missing
+      period: json['period'] ?? '7d',
       interval: json['interval'] ?? '',
       data: (json['data'] as List? ?? [])
           .map((e) => OwnerGraphDataPoint.fromJson(e))
           .toList(),
+      totalCount: json['total_count'] ?? 0,
+      totalVolume: (json['total_volume'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

@@ -77,6 +77,8 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
           const SizedBox(height: 16),
           _buildFilters(isMobile),
           const SizedBox(height: 24),
+          _buildTotals(),
+          const SizedBox(height: 16),
           _buildChart(),
         ],
       ),
@@ -239,6 +241,56 @@ class _FilteredAnalyticsChartState extends State<FilteredAnalyticsChart> {
           .read<GraphCubit>()
           .updateCustomDateRange(formattedFrom, formattedTo);
     }
+  }
+
+  Widget _buildTotals() {
+    return BlocBuilder<GraphCubit, GraphState>(
+      builder: (context, state) {
+        if (state is GraphSuccess) {
+          final data = state.graphData;
+          final showCount = data.totalCount > 0;
+          final showVolume = data.totalVolume > 0;
+
+          if (!showCount && !showVolume) return const SizedBox.shrink();
+
+          return Row(
+            children: [
+              if (showCount)
+                _buildTotalItem(
+                  'Total Count',
+                  data.totalCount.toString(),
+                  AppColors.brandPrimary,
+                ),
+              if (showCount && showVolume) const SizedBox(width: 24),
+              if (showVolume)
+                _buildTotalItem(
+                  'Total Volume',
+                  '${data.totalVolume}',
+                  AppColors.success,
+                ),
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildTotalItem(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyle.caption.copyWith(color: AppColors.neutral500),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: AppTextStyle.heading3.copyWith(color: color),
+        ),
+      ],
+    );
   }
 
   Widget _buildChart() {

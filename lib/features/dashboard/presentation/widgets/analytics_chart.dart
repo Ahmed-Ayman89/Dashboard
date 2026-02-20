@@ -8,6 +8,8 @@ class AnalyticsChart extends StatelessWidget {
   final List<FlSpot> spots;
   final List<String> xAxisLabels;
   final Color chartColor;
+  final int? totalCount;
+  final double? totalVolume;
 
   const AnalyticsChart({
     super.key,
@@ -15,6 +17,8 @@ class AnalyticsChart extends StatelessWidget {
     required this.spots,
     required this.xAxisLabels,
     this.chartColor = AppColors.brandPrimary,
+    this.totalCount,
+    this.totalVolume,
   });
 
   @override
@@ -49,6 +53,10 @@ class AnalyticsChart extends StatelessWidget {
               const Icon(Icons.more_vert_rounded, color: AppColors.neutral500),
             ],
           ),
+          if (totalCount != null || totalVolume != null) ...[
+            const SizedBox(height: 24),
+            _buildTotals(),
+          ],
           const SizedBox(height: 32),
           SizedBox(
             height: 250,
@@ -176,5 +184,47 @@ class AnalyticsChart extends StatelessWidget {
     if (maxY == 0) return 1.0;
     // Aim for ~5-6 intervals
     return (maxY / 5).ceilToDouble();
+  }
+
+  Widget _buildTotals() {
+    final showCount = totalCount != null && totalCount! > 0;
+    final showVolume = totalVolume != null && totalVolume! > 0;
+
+    if (!showCount && !showVolume) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        if (showCount)
+          _buildTotalItem(
+            'Total Count',
+            totalCount.toString(),
+            chartColor,
+          ),
+        if (showCount && showVolume) const SizedBox(width: 24),
+        if (showVolume)
+          _buildTotalItem(
+            'Total Volume',
+            '$totalVolume',
+            AppColors.success,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTotalItem(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyle.caption.copyWith(color: AppColors.neutral500),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: AppTextStyle.heading3.copyWith(color: color),
+        ),
+      ],
+    );
   }
 }

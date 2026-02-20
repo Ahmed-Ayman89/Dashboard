@@ -4,6 +4,8 @@ class KioskGraphModel {
   final String period;
   final String interval;
   final List<KioskGraphDataPoint> data;
+  final int totalCount;
+  final double totalVolume;
 
   KioskGraphModel({
     required this.kioskId,
@@ -11,17 +13,21 @@ class KioskGraphModel {
     required this.period,
     required this.interval,
     required this.data,
+    this.totalCount = 0,
+    this.totalVolume = 0,
   });
 
   factory KioskGraphModel.fromJson(Map<String, dynamic> json) {
     return KioskGraphModel(
       kioskId: json['kiosk_id'] ?? '',
       resource: json['resource'] ?? '',
-      period: json['period'] ?? '7d', // Default as per example response
+      period: json['period'] ?? '7d',
       interval: json['interval'] ?? '',
       data: (json['data'] as List? ?? [])
           .map((e) => KioskGraphDataPoint.fromJson(e))
           .toList(),
+      totalCount: json['total_count'] ?? 0,
+      totalVolume: (json['total_volume'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

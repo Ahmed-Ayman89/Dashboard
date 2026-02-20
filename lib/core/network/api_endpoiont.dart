@@ -40,4 +40,5 @@ abstract class EndPoints {
   static const String settings = 'admin/settings';
   static const String adminCalls = 'admin/calls';
   static const String systemAlerts = 'admin/alerts';
+  static const String shadowAccounts = 'admin/shadow-accounts';
 }
