@@ -13,11 +13,15 @@ class ShadowAccountRepositoryImpl implements ShadowAccountRepository {
             remoteDataSource ?? ShadowAccountRemoteDataSource(APIHelper());
 
   @override
-  Future<Map<String, dynamic>> getShadowAccounts(
-      {int page = 1, int limit = 10}) async {
+  Future<Map<String, dynamic>> getShadowAccounts({
+    int page = 1,
+    int limit = 10,
+    String? search,
+  }) async {
     final response = await remoteDataSource.getShadowAccounts(
       page: page,
       limit: limit,
+      search: search,
     );
 
     if (response.isSuccess && response.data != null) {

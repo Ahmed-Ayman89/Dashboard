@@ -5,14 +5,8 @@ import 'package:dashboard_grow/core/theme/app_colors.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/filtered_analytics_chart.dart';
 import '../widgets/recent_activities_section.dart';
-import '../cubit/graph_cubit.dart';
 import '../cubit/dashboard_stats_cubit.dart';
 import '../cubit/dashboard_stats_state.dart';
-import '../../data/datasources/dashboard_remote_data_source.dart';
-import '../../data/repositories/graph_repository_impl.dart';
-import '../../data/repositories/dashboard_stats_repository_impl.dart';
-import '../../domain/usecases/get_graph_data_usecase.dart';
-import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -20,52 +14,25 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isMobile = MediaQuery.of(context).size.width < 800;
+    final state = context.watch<DashboardStatsCubit>().state;
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => GraphCubit(
-            GetGraphDataUseCase(
-              GraphRepositoryImpl(
-                remoteDataSource: DashboardRemoteDataSource(),
-              ),
-            ),
-          ),
-        ),
-        BlocProvider(
-          create: (context) => DashboardStatsCubit(
-            GetDashboardStatsUseCase(
-              DashboardStatsRepositoryImpl(
-                remoteDataSource: DashboardRemoteDataSource(),
-              ),
-            ),
-          )..loadDashboardStats(),
-        ),
-      ],
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(isMobile),
-              SizedBox(height: isMobile ? 24 : 32),
-              _buildKpiGrid(context, isMobile),
-              SizedBox(height: isMobile ? 24 : 32),
-              const FilteredAnalyticsChart(),
-              const SizedBox(height: 32),
-              BlocBuilder<DashboardStatsCubit, DashboardStatsState>(
-                builder: (context, state) {
-                  if (state is DashboardStatsSuccess) {
-                    return RecentActivitiesSection(stats: state.stats);
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(isMobile),
+            SizedBox(height: isMobile ? 24 : 32),
+            _buildKpiGrid(context, isMobile),
+            SizedBox(height: isMobile ? 24 : 32),
+            const FilteredAnalyticsChart(),
+            const SizedBox(height: 32),
+            if (state is DashboardStatsSuccess)
+              RecentActivitiesSection(stats: state.stats),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );

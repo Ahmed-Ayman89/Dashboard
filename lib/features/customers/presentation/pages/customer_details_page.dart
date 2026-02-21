@@ -190,56 +190,65 @@ class _CustomerDetailsView extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: Text(
-              profile.fullName.isNotEmpty ? profile.fullName[0] : '?',
-              style: AppTextStyle.heading1.copyWith(color: AppColors.primary),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 600;
+
+        Widget infoSection = Column(
+          crossAxisAlignment: isSmallScreen
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Text(
+              profile.fullName,
+              style: AppTextStyle.heading2,
+              textAlign: isSmallScreen ? TextAlign.center : TextAlign.start,
             ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment:
+                  isSmallScreen ? WrapAlignment.center : WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(profile.fullName, style: AppTextStyle.heading2),
-                const SizedBox(height: 4),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.phone,
                         size: 16, color: AppColors.neutral500),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(profile.phone,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.bodyRegular),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildStatusBadge(profile.isActive),
-                    if (profile.isVerified) ...[
-                      const SizedBox(width: 8),
-                      const Icon(Icons.verified,
-                          size: 20, color: AppColors.primary),
-                    ],
+                    Text(profile.phone, style: AppTextStyle.bodyRegular),
                   ],
                 ),
-                const SizedBox(height: 8),
+                _buildStatusBadge(profile.isActive),
+                if (profile.isVerified)
+                  const Icon(Icons.verified,
+                      size: 20, color: AppColors.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment:
+                  isSmallScreen ? WrapAlignment.center : WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.calendar_today,
                         size: 14, color: AppColors.neutral500),
                     const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyle.caption,
-                      ),
+                    Text(
+                      'Joined ${DateFormat('MMM d, yyyy').format(profile.createdAt)}',
+                      style: AppTextStyle.caption,
                     ),
-                    const SizedBox(width: 8),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Icon(Icons.smartphone,
                         size: 14,
                         color: profile.appDownloaded
@@ -254,42 +263,79 @@ class _CustomerDetailsView extends StatelessWidget {
                               : AppColors.neutral500),
                     ),
                   ],
-                )
+                ),
+              ],
+            )
+          ],
+        );
+
+        final items = [
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              profile.fullName.isNotEmpty ? profile.fullName[0] : '?',
+              style: AppTextStyle.heading1.copyWith(color: AppColors.primary),
+            ),
+          ),
+          SizedBox(
+              width: isSmallScreen ? 0 : 24, height: isSmallScreen ? 16 : 0),
+          isSmallScreen ? infoSection : Expanded(child: infoSection),
+          SizedBox(
+              width: isSmallScreen ? 0 : 24, height: isSmallScreen ? 24 : 0),
+          SizedBox(
+            width: isSmallScreen ? double.infinity : null,
+            child: Column(
+              children: [
+                SizedBox(
+                  width: isSmallScreen ? double.infinity : null,
+                  child: ElevatedButton.icon(
+                    onPressed: () =>
+                        _showAdjustBalanceDialog(context, profile.id),
+                    icon: const Icon(Icons.account_balance_wallet, size: 18),
+                    label: const Text('Adjust Balance'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: isSmallScreen ? double.infinity : null,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showStatusDialog(
+                        context, profile.id, profile.isActive),
+                    icon: Icon(
+                        profile.isActive
+                            ? Icons.block
+                            : Icons.check_circle_outline,
+                        size: 18),
+                    label: Text(profile.isActive ? 'Suspend' : 'Activate'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: profile.isActive
+                          ? AppColors.error
+                          : AppColors.success,
+                      side: BorderSide(
+                          color: profile.isActive
+                              ? AppColors.error
+                              : AppColors.success),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          Column(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _showAdjustBalanceDialog(context, profile.id),
-                icon: const Icon(Icons.account_balance_wallet, size: 18),
-                label: const Text('Adjust Balance'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () =>
-                    _showStatusDialog(context, profile.id, profile.isActive),
-                icon: Icon(
-                    profile.isActive ? Icons.block : Icons.check_circle_outline,
-                    size: 18),
-                label: Text(profile.isActive ? 'Suspend' : 'Activate'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      profile.isActive ? AppColors.error : AppColors.success,
-                  side: BorderSide(
-                      color: profile.isActive
-                          ? AppColors.error
-                          : AppColors.success),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ];
+
+        return isSmallScreen
+            ? Column(
+                children: items,
+              )
+            : Row(
+                children: items,
+              );
+      }),
     );
   }
 

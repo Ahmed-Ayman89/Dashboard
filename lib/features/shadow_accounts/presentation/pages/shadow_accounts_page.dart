@@ -23,8 +23,21 @@ class ShadowAccountsPage extends StatelessWidget {
   }
 }
 
-class _ShadowAccountsView extends StatelessWidget {
+class _ShadowAccountsView extends StatefulWidget {
   const _ShadowAccountsView();
+
+  @override
+  State<_ShadowAccountsView> createState() => _ShadowAccountsViewState();
+}
+
+class _ShadowAccountsViewState extends State<_ShadowAccountsView> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +51,8 @@ class _ShadowAccountsView extends StatelessWidget {
             children: [
               _buildHeader(context),
               const SizedBox(height: 32),
+              _buildSearchBar(context),
+              const SizedBox(height: 24),
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -63,10 +78,21 @@ class _ShadowAccountsView extends StatelessWidget {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
-                          child: Text(
-                            state.message,
-                            style: AppTextStyle.bodyRegular
-                                .copyWith(color: AppColors.error),
+                          child: Column(
+                            children: [
+                              Text(
+                                state.message,
+                                style: AppTextStyle.bodyRegular
+                                    .copyWith(color: AppColors.error),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context
+                                    .read<ShadowAccountsCubit>()
+                                    .getShadowAccounts(),
+                                child: const Text('Retry'),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -102,11 +128,72 @@ class _ShadowAccountsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Shadow Accounts', style: AppTextStyle.heading1),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text('Shadow Accounts', style: AppTextStyle.heading1),
+            BlocBuilder<ShadowAccountsCubit, ShadowAccountsState>(
+              builder: (context, state) {
+                if (state is ShadowAccountsLoaded) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border:
+                          Border.all(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      '${state.total} Total',
+                      style: AppTextStyle.caption.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         Text('Manage shadow accounts and their balances',
             style: AppTextStyle.bodyMedium),
       ],
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onSubmitted: (value) {
+          context.read<ShadowAccountsCubit>().searchShadowAccounts(value);
+        },
+        decoration: InputDecoration(
+          hintText: 'Search shadow accounts by phone...',
+          hintStyle: AppTextStyle.bodySmall,
+          border: InputBorder.none,
+          icon: const Icon(Icons.search_rounded, color: AppColors.neutral500),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              _searchController.clear();
+              context.read<ShadowAccountsCubit>().searchShadowAccounts('');
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -146,46 +233,24 @@ class _ShadowAccountsView extends StatelessWidget {
             return DataRow(
               onSelectChanged: (selected) {
                 if (selected != null && selected) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ShadowAccountDetailsPage(phone: account.phone),
-                    ),
-                  );
+                  _navigateToDetails(context, account.phone);
                 }
               },
               cells: [
-                DataCell(InkWell(
-                    onTap: () => _navigateToDetails(context, account.phone),
-                    child: SizedBox(
-                        width: double.infinity,
-                        child: Text(account.phone,
-                            style: AppTextStyle.bodyMedium)))),
-                DataCell(InkWell(
-                    onTap: () => _navigateToDetails(context, account.phone),
-                    child: SizedBox(
-                        width: double.infinity,
-                        child: Text('${account.balance} points',
-                            style: AppTextStyle.bodyMedium)))),
-                DataCell(InkWell(
-                    onTap: () => _navigateToDetails(context, account.phone),
-                    child: SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          account.lastFollowUp != null
-                              ? _formatDate(account.lastFollowUp!)
-                              : 'None',
-                          style: AppTextStyle.bodySmall,
-                        )))),
-                DataCell(InkWell(
-                    onTap: () => _navigateToDetails(context, account.phone),
-                    child: SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          DateFormat('MMM d, yyyy HH:mm')
-                              .format(DateTime.parse(account.lastUpdated)),
-                          style: AppTextStyle.bodySmall,
-                        )))),
+                DataCell(Text(account.phone, style: AppTextStyle.bodyMedium)),
+                DataCell(Text('${account.balance} points',
+                    style: AppTextStyle.bodyMedium)),
+                DataCell(Text(
+                  account.lastFollowUp != null
+                      ? _formatDate(account.lastFollowUp!)
+                      : 'None',
+                  style: AppTextStyle.bodySmall,
+                )),
+                DataCell(Text(
+                  DateFormat('MMM d, yyyy HH:mm')
+                      .format(DateTime.parse(account.lastUpdated)),
+                  style: AppTextStyle.bodySmall,
+                )),
               ],
             );
           }).toList(),

@@ -52,8 +52,9 @@ class LoginCubit extends Cubit<LoginState> {
             }
           }
 
-          // Sync FCM Token (only on mobile platforms)
+          // Sync FCM Token (only on mobile platforms and for verified users)
           if (!kIsWeb &&
+              !mustChangePassword &&
               (defaultTargetPlatform == TargetPlatform.android ||
                   defaultTargetPlatform == TargetPlatform.iOS)) {
             print(
@@ -66,8 +67,13 @@ class LoginCubit extends Cubit<LoginState> {
               print('LoginCubit: FCM token sync failed: $e');
             }
           } else {
-            print(
-                "LoginCubit: Skipping FCM sync (Web or non-mobile platform).");
+            if (mustChangePassword) {
+              print(
+                  "LoginCubit: Skipping FCM sync for unverified user (must change password).");
+            } else {
+              print(
+                  "LoginCubit: Skipping FCM sync (Web or non-mobile platform).");
+            }
           }
 
           emit(LoginSuccess(mustChangePassword: mustChangePassword));

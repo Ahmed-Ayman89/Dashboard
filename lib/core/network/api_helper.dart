@@ -57,6 +57,16 @@ class APIHelper {
 
             try {
               final refreshToken = LocalData.refreshToken;
+
+              // Check if the error is "User not verified" (AUTH_004) or "Pending approval" (AUTH_009)
+              // If so, we DON'T want to clear the tokens because we are in a valid but restricted auth state
+              final errorData = err.response?.data;
+              if (errorData is Map<String, dynamic> &&
+                  (errorData['errorCode'] == 'AUTH_004' ||
+                      errorData['errorCode'] == 'AUTH_009')) {
+                return handler.next(err);
+              }
+
               if (refreshToken == null || refreshToken.isEmpty) {
                 await LocalData.clear();
                 return handler.reject(err);

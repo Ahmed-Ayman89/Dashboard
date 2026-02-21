@@ -22,7 +22,7 @@ class _EditAdminDialogState extends State<EditAdminDialog> {
   String? _selectedStatus;
 
   final List<String> _roles = ['EDITOR', 'VIEWER'];
-  final List<String> _statuses = ['ACTIVE', 'SUSPENDED'];
+  final List<String> _statuses = ['ACTIVE', 'SUSPENDED', 'PENDING'];
 
   @override
   void initState() {
@@ -30,8 +30,13 @@ class _EditAdminDialogState extends State<EditAdminDialog> {
     _nameController = TextEditingController(text: widget.admin.fullName);
     _phoneController = TextEditingController(text: widget.admin.phone);
     _selectedRole = widget.admin.adminRole;
-    _selectedStatus =
-        widget.admin.status == 'APPROVED' ? 'ACTIVE' : widget.admin.status;
+    if (widget.admin.status == 'APPROVED') {
+      _selectedStatus = 'ACTIVE';
+    } else if (_statuses.contains(widget.admin.status)) {
+      _selectedStatus = widget.admin.status;
+    } else {
+      _selectedStatus = _statuses.first; // Default to ACTIVE
+    }
   }
 
   @override

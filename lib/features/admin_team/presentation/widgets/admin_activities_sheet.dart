@@ -98,7 +98,16 @@ class AdminActivitiesSheet extends StatelessWidget {
                                     style: AppTextStyle.caption
                                         .copyWith(color: AppColors.neutral500),
                                   ),
-                                  if (activity.details != null &&
+                                  if (activity.formattedDetails != null &&
+                                      activity
+                                          .formattedDetails!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      activity.formattedDetails!,
+                                      style: AppTextStyle.bodySmall.copyWith(
+                                          color: AppColors.neutral700),
+                                    ),
+                                  ] else if (activity.details != null &&
                                       activity.details!.isNotEmpty) ...[
                                     const SizedBox(height: 8),
                                     Text(

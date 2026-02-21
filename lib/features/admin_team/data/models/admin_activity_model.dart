@@ -5,6 +5,7 @@ class AdminActivity {
   final String action;
   final String targetId;
   final Map<String, dynamic>? details;
+  final String? formattedDetails;
   final String? ipAddress;
   final DateTime createdAt;
 
@@ -13,16 +14,26 @@ class AdminActivity {
     required this.action,
     required this.targetId,
     this.details,
+    this.formattedDetails,
     this.ipAddress,
     required this.createdAt,
   });
 
   factory AdminActivity.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? detailsMap;
+    if (json['details'] is Map<String, dynamic>) {
+      detailsMap = json['details'] as Map<String, dynamic>;
+    } else if (json['details'] is String) {
+      // If it's a string, we might want to store it or just leave details null
+      // For now, let's keep details as Map and use formattedDetails for text
+    }
+
     return AdminActivity(
       id: json['id'] ?? '',
       action: json['action'] ?? '',
       targetId: json['target_id'] ?? '',
-      details: json['details'],
+      details: detailsMap,
+      formattedDetails: json['formatted_details'],
       ipAddress: json['ip_address'],
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );

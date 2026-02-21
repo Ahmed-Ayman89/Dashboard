@@ -19,8 +19,10 @@ class DashboardStatsRepositoryImpl implements DashboardStatsRepository {
         final statsModel = DashboardStatsModel.fromJson(response.data);
         return Right(statsModel.toEntity());
       } else {
-        return Left(
-            ServerFailure(message: response.message ?? 'Unknown error'));
+        return Left(ServerFailure(
+          message: response.message ?? 'Unknown error',
+          errorCode: response.errorCode,
+        ));
       }
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

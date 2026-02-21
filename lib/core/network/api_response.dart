@@ -7,6 +7,7 @@ class ApiResponse<T> {
   final int? statusCode;
   final T? data;
   final String? message;
+  final String? errorCode;
   final ApiError? error;
 
   const ApiResponse._({
@@ -14,6 +15,7 @@ class ApiResponse<T> {
     this.statusCode,
     this.data,
     this.message,
+    this.errorCode,
     this.error,
   });
 
@@ -24,12 +26,14 @@ class ApiResponse<T> {
     required T data,
     int? statusCode,
     String? message,
+    String? errorCode,
   }) {
     return ApiResponse._(
       status: ApiStatus.success,
       data: data,
       statusCode: statusCode,
       message: message,
+      errorCode: errorCode,
     );
   }
 
@@ -37,12 +41,14 @@ class ApiResponse<T> {
   factory ApiResponse.error({
     int? statusCode,
     String? message,
+    String? errorCode,
     ApiError? error,
   }) {
     return ApiResponse._(
       status: ApiStatus.error,
       statusCode: statusCode,
       message: message,
+      errorCode: errorCode,
       error: error,
     );
   }
@@ -60,12 +66,14 @@ class ApiResponse<T> {
         data: parser != null ? parser(body) : body as T,
         statusCode: code,
         message: _extractMessage(body),
+        errorCode: _extractErrorCode(body),
       );
     }
 
     return ApiResponse.error(
       statusCode: code,
       message: _extractMessage(body) ?? response.statusMessage,
+      errorCode: _extractErrorCode(body),
       error: ApiError.server(code, _extractMessage(body)),
     );
   }
@@ -128,7 +136,28 @@ class ApiResponse<T> {
 
   static String? _extractMessage(dynamic body) {
     if (body is Map<String, dynamic>) {
-      return body['message']?.toString();
+      final message = body['message']?.toString();
+      final details = body['details'];
+
+      if (details is Map<String, dynamic>) {
+        final reason = details['reason']?.toString();
+        final error = details['error']?.toString();
+        final detail = details['detail']?.toString();
+
+        final specificReason = reason ?? error ?? detail;
+        if (specificReason != null) {
+          return message != null ? '$message: $specificReason' : specificReason;
+        }
+      }
+
+      return message;
+    }
+    return null;
+  }
+
+  static String? _extractErrorCode(dynamic body) {
+    if (body is Map<String, dynamic>) {
+      return body['errorCode']?.toString();
     }
     return null;
   }

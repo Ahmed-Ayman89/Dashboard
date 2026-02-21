@@ -27,6 +27,14 @@ import '../../../auth/domain/usecases/delete_fcm_token_usecase.dart';
 import '../../../auth/presentation/cubit/logout_cubit.dart';
 import '../../../auth/presentation/cubit/logout_state.dart';
 import '../../../Onboarding/onboarding_screen.dart';
+import '../cubit/dashboard_stats_cubit.dart';
+import '../cubit/dashboard_stats_state.dart';
+import '../../data/datasources/dashboard_remote_data_source.dart';
+import '../../data/repositories/dashboard_stats_repository_impl.dart';
+import '../../domain/usecases/get_dashboard_stats_usecase.dart';
+import '../cubit/graph_cubit.dart';
+import '../../data/repositories/graph_repository_impl.dart';
+import '../../domain/usecases/get_graph_data_usecase.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -129,14 +137,36 @@ class _DashboardPageState extends State<DashboardPage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return BlocProvider(
-      create: (context) {
-        final authRepository = AuthRepositoryImpl();
-        return LogoutCubit(
-          LogoutUseCase(authRepository),
-          DeleteFcmTokenUseCase(authRepository),
-        );
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final authRepository = AuthRepositoryImpl();
+            return LogoutCubit(
+              LogoutUseCase(authRepository),
+              DeleteFcmTokenUseCase(authRepository),
+            );
+          },
+        ),
+        BlocProvider(
+          create: (context) => GraphCubit(
+            GetGraphDataUseCase(
+              GraphRepositoryImpl(
+                remoteDataSource: DashboardRemoteDataSource(),
+              ),
+            ),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => DashboardStatsCubit(
+            GetDashboardStatsUseCase(
+              DashboardStatsRepositoryImpl(
+                remoteDataSource: DashboardRemoteDataSource(),
+              ),
+            ),
+          )..loadDashboardStats(),
+        ),
+      ],
       child: BlocListener<LogoutCubit, LogoutState>(
         listener: (context, state) {
           if (state is LogoutSuccess) {
@@ -152,49 +182,113 @@ class _DashboardPageState extends State<DashboardPage> {
             );
           }
         },
-        child: Builder(builder: (context) {
-          return Scaffold(
-            backgroundColor: AppColors.neutral100,
-            appBar: ResponsiveLayout.isMobile(context)
-                ? AppBar(
-                    title: SvgPicture.asset('assets/onboarding/glow.svg',
-                        height: 28),
-                    backgroundColor: AppColors.white,
-                    elevation: 0,
-                  )
-                : null,
-            drawer: ResponsiveLayout.isMobile(context)
-                ? _Sidebar(
-                    selectedIndex: _selectedIndex,
-                    onItemSelected: (index) {
-                      setState(() => _selectedIndex = index);
-                      Navigator.pop(context);
-                    },
-                    navItems: _navItems,
-                    onLogout: () {
-                      context.read<LogoutCubit>().logout();
-                    },
-                  )
-                : null,
-            body: Row(
-              children: [
-                if (ResponsiveLayout.isDesktop(context))
-                  _Sidebar(
-                    selectedIndex: _selectedIndex,
-                    onItemSelected: (index) =>
-                        setState(() => _selectedIndex = index),
-                    navItems: _navItems,
-                    onLogout: () {
-                      context.read<LogoutCubit>().logout();
-                    },
+        child: BlocBuilder<DashboardStatsCubit, DashboardStatsState>(
+          builder: (context, state) {
+            if (state is DashboardStatsPendingApproval) {
+              return Scaffold(
+                backgroundColor: AppColors.white,
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.hourglass_empty_rounded,
+                            size: 80.sp, color: AppColors.warning),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Account Pending Approval',
+                          style: AppTextStyle.heading2,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Welcome to Grow! Your account is currently being reviewed by our team. This usually takes less than 24 hours. You will receive a notification once your account is active.',
+                          style: AppTextStyle.bodyRegular.copyWith(
+                            color: AppColors.neutral600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 48),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            context
+                                .read<DashboardStatsCubit>()
+                                .loadDashboardStats();
+                          },
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Check Status'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () {
+                            context.read<LogoutCubit>().logout();
+                          },
+                          child: Text(
+                            'Logout',
+                            style: AppTextStyle.button.copyWith(
+                              color: AppColors.red,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                Expanded(
-                  child: _navItems[_selectedIndex].destination,
                 ),
-              ],
-            ),
-          );
-        }),
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: AppColors.neutral100,
+              appBar: ResponsiveLayout.isMobile(context)
+                  ? AppBar(
+                      title: SvgPicture.asset('assets/onboarding/glow.svg',
+                          height: 28),
+                      backgroundColor: AppColors.white,
+                      elevation: 0,
+                    )
+                  : null,
+              drawer: ResponsiveLayout.isMobile(context)
+                  ? _Sidebar(
+                      selectedIndex: _selectedIndex,
+                      onItemSelected: (index) {
+                        setState(() => _selectedIndex = index);
+                        Navigator.pop(context);
+                      },
+                      navItems: _navItems,
+                      onLogout: () {
+                        context.read<LogoutCubit>().logout();
+                      },
+                    )
+                  : null,
+              body: Row(
+                children: [
+                  if (ResponsiveLayout.isDesktop(context))
+                    _Sidebar(
+                      selectedIndex: _selectedIndex,
+                      onItemSelected: (index) =>
+                          setState(() => _selectedIndex = index),
+                      navItems: _navItems,
+                      onLogout: () {
+                        context.read<LogoutCubit>().logout();
+                      },
+                    ),
+                  Expanded(
+                    child: _navItems[_selectedIndex].destination,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -43,7 +43,38 @@ class _CustomersViewState extends State<_CustomersView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Customer Management', style: AppTextStyle.heading1),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('Customer Management', style: AppTextStyle.heading1),
+                  BlocBuilder<CustomersCubit, CustomersState>(
+                    builder: (context, state) {
+                      if (state is CustomersLoaded) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: AppColors.primary.withOpacity(0.2)),
+                          ),
+                          child: Text(
+                            '${state.total} Total',
+                            style: AppTextStyle.caption.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
               const SizedBox(height: 32),
               _buildFilters(context),
               const SizedBox(height: 24),
@@ -74,10 +105,10 @@ class _CustomersViewState extends State<_CustomersView> {
           border: InputBorder.none,
           icon: const Icon(Icons.search_rounded, color: AppColors.neutral500),
           suffixIcon: IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.clear),
             onPressed: () {
               _searchController.clear();
-              context.read<CustomersCubit>().getCustomers();
+              context.read<CustomersCubit>().searchCustomers('');
             },
           ),
         ),
@@ -265,9 +296,7 @@ class _CustomersViewState extends State<_CustomersView> {
             children: [
               IconButton(
                 onPressed: state.page > 1
-                    ? () => context
-                        .read<CustomersCubit>()
-                        .getCustomers(page: state.page - 1)
+                    ? () => context.read<CustomersCubit>().loadPreviousPage()
                     : null,
                 icon: const Icon(Icons.chevron_left),
                 color: AppColors.primary,
@@ -278,9 +307,7 @@ class _CustomersViewState extends State<_CustomersView> {
               const SizedBox(width: 8),
               IconButton(
                 onPressed: state.page < totalPages
-                    ? () => context
-                        .read<CustomersCubit>()
-                        .getCustomers(page: state.page + 1)
+                    ? () => context.read<CustomersCubit>().loadNextPage()
                     : null,
                 icon: const Icon(Icons.chevron_right),
                 color: AppColors.primary,

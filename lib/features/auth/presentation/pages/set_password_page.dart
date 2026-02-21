@@ -9,6 +9,8 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/usecases/set_password_usecase.dart';
 import '../cubit/set_password_cubit.dart';
 import '../cubit/set_password_state.dart';
+import '../../../../core/services/notification_service.dart';
+import 'package:flutter/foundation.dart';
 
 class SetPasswordPage extends StatelessWidget {
   const SetPasswordPage({super.key});
@@ -74,6 +76,14 @@ class _SetPasswordFormState extends State<_SetPasswordForm> {
                 type: SnackBarType.success,
               ),
             );
+
+            // Sync FCM Token after successful password set (as the user is now verified)
+            if (!kIsWeb &&
+                (defaultTargetPlatform == TargetPlatform.android ||
+                    defaultTargetPlatform == TargetPlatform.iOS)) {
+              NotificationService.instance.syncCurrentToken();
+            }
+
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const DashboardPage()),

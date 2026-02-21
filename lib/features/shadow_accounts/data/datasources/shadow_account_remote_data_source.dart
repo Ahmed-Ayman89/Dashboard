@@ -7,13 +7,23 @@ class ShadowAccountRemoteDataSource {
 
   ShadowAccountRemoteDataSource(this._apiHelper);
 
-  Future<ApiResponse> getShadowAccounts({int page = 1, int limit = 10}) async {
+  Future<ApiResponse> getShadowAccounts({
+    int page = 1,
+    int limit = 10,
+    String? search,
+  }) async {
+    final Map<String, dynamic> queryParameters = {
+      'page': page,
+      'limit': limit,
+    };
+
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+
     return await _apiHelper.getRequest(
       endPoint: EndPoints.shadowAccounts,
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-      },
+      queryParameters: queryParameters,
     );
   }
 

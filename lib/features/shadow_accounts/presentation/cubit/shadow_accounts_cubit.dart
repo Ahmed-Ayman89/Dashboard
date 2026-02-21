@@ -42,14 +42,29 @@ class ShadowAccountsFailure extends ShadowAccountsState {
 
 class ShadowAccountsCubit extends Cubit<ShadowAccountsState> {
   final GetShadowAccountsUseCase getShadowAccountsUseCase;
+  String? _searchQuery;
 
   ShadowAccountsCubit(this.getShadowAccountsUseCase)
       : super(ShadowAccountsInitial());
 
-  Future<void> getShadowAccounts({int page = 1, int limit = 10}) async {
+  Future<void> getShadowAccounts({
+    int page = 1,
+    int limit = 10,
+    String? search,
+  }) async {
+    // If search is provided (even if empty string), we update it.
+    // If search is null (typical for pagination call), we preserve existing.
+    if (search != null) {
+      _searchQuery = search;
+    }
+
     emit(ShadowAccountsLoading());
     try {
-      final result = await getShadowAccountsUseCase(page: page, limit: limit);
+      final result = await getShadowAccountsUseCase(
+        page: page,
+        limit: limit,
+        search: _searchQuery,
+      );
       emit(ShadowAccountsLoaded(
         shadowAccounts: result['shadowAccounts'],
         total: result['total'],
@@ -59,5 +74,10 @@ class ShadowAccountsCubit extends Cubit<ShadowAccountsState> {
     } catch (e) {
       emit(ShadowAccountsFailure(e.toString()));
     }
+  }
+
+  void searchShadowAccounts(String query) {
+    if (query == _searchQuery) return;
+    getShadowAccounts(page: 1, search: query);
   }
 }

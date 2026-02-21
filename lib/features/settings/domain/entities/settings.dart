@@ -21,6 +21,7 @@ class GlobalSettings extends Equatable {
   final num minRedemptionAmount;
   final num minSendingAmount;
   final num goalSetupLimit;
+  final num maxKiosksPerOwner;
 
   const GlobalSettings({
     required this.dailyKioskLimit,
@@ -28,6 +29,7 @@ class GlobalSettings extends Equatable {
     required this.minRedemptionAmount,
     required this.minSendingAmount,
     required this.goalSetupLimit,
+    required this.maxKiosksPerOwner,
   });
 
   @override
@@ -37,6 +39,7 @@ class GlobalSettings extends Equatable {
         minRedemptionAmount,
         minSendingAmount,
         goalSetupLimit,
+        maxKiosksPerOwner,
       ];
 }
 

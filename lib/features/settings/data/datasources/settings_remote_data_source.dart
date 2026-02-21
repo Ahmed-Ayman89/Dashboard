@@ -29,6 +29,7 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       String key, dynamic value, String description) async {
     await apiHelper.putRequest(
       endPoint: EndPoints.settings,
+      isFormData: false,
       data: {
         'key': key,
         'value': value,

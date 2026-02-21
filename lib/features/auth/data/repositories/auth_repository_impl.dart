@@ -77,7 +77,24 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<ApiResponse> setPassword(String password) async {
     try {
-      return await _remoteDataSource.setPassword(password);
+      final response = await _remoteDataSource.setPassword(password);
+
+      if (response.isSuccess && response.data != null) {
+        final data = response.data['data'];
+        if (data is Map<String, dynamic>) {
+          final accessToken = data['token'] ?? data['accessToken'];
+          final refreshToken = data['refreshToken'];
+
+          if (accessToken != null) {
+            await LocalData.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            );
+          }
+        }
+      }
+
+      return response;
     } catch (e) {
       return ApiResponse.error(message: e.toString());
     }

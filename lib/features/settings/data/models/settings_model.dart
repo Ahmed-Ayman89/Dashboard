@@ -23,6 +23,7 @@ class GlobalSettingsModel extends GlobalSettings {
     required super.minRedemptionAmount,
     required super.minSendingAmount,
     required super.goalSetupLimit,
+    required super.maxKiosksPerOwner,
   });
 
   factory GlobalSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,7 @@ class GlobalSettingsModel extends GlobalSettings {
       minRedemptionAmount: json['min_redemption_amount'] ?? 0,
       minSendingAmount: json['min_sending_amount'] ?? 0,
       goalSetupLimit: json['goal_setup_limit'] ?? 0,
+      maxKiosksPerOwner: json['max_kiosks_per_owner'] ?? 0,
     );
   }
 }

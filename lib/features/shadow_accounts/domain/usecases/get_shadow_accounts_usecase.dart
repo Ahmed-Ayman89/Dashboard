@@ -5,7 +5,15 @@ class GetShadowAccountsUseCase {
 
   GetShadowAccountsUseCase(this._repository);
 
-  Future<Map<String, dynamic>> call({int page = 1, int limit = 10}) async {
-    return await _repository.getShadowAccounts(page: page, limit: limit);
+  Future<Map<String, dynamic>> call({
+    int page = 1,
+    int limit = 10,
+    String? search,
+  }) async {
+    return await _repository.getShadowAccounts(
+      page: page,
+      limit: limit,
+      search: search,
+    );
   }
 }

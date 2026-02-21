@@ -21,6 +21,8 @@ class DashboardStatsSuccess extends DashboardStatsState {
   List<Object> get props => [stats];
 }
 
+class DashboardStatsPendingApproval extends DashboardStatsState {}
+
 class DashboardStatsError extends DashboardStatsState {
   final String message;
 

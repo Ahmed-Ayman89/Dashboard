@@ -46,14 +46,34 @@ class SettingsPage extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            if (state is SettingsLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is SettingsLoaded) {
-              return _SettingsContent(settings: state.settings);
-            } else if (state is SettingsActionLoading) {
+            if (state is SettingsLoading && state is! SettingsLoaded) {
               return const Center(child: CircularProgressIndicator());
             }
-            return const SizedBox.shrink();
+
+            Settings? currentSettings;
+            if (state is SettingsLoaded) {
+              currentSettings = state.settings;
+            } else if (context.read<SettingsCubit>().state is SettingsLoaded) {
+              currentSettings =
+                  (context.read<SettingsCubit>().state as SettingsLoaded)
+                      .settings;
+            }
+
+            if (currentSettings != null) {
+              return Stack(
+                children: [
+                  _SettingsContent(settings: currentSettings),
+                  if (state is SettingsActionLoading ||
+                      state is SettingsLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.1),
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              );
+            }
+
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       ),
@@ -99,6 +119,12 @@ class _SettingsContent extends StatelessWidget {
                 isNumber: true),
             _buildSettingItem(context, 'Goal Setup Limit',
                 settings.global.goalSetupLimit.toString(), 'goal_setup_limit',
+                isNumber: true),
+            _buildSettingItem(
+                context,
+                'Max Kiosks Per Owner',
+                settings.global.maxKiosksPerOwner.toString(),
+                'max_kiosks_per_owner',
                 isNumber: true),
           ]),
           const SizedBox(height: 24),
